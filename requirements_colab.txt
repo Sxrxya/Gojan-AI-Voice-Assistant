@@ -1,15 +1,15 @@
 # Gojan AI Assistant — Colab Dependencies (Phase A)
 # Install: pip install -r requirements_colab.txt
 
-transformers==4.40.0
-peft==0.10.0
-trl==0.8.6
-bitsandbytes==0.43.1
-datasets==2.19.0
-accelerate==0.29.3
-sentence-transformers==2.7.0
-faiss-cpu==1.8.0
-requests==2.31.0
-beautifulsoup4==4.12.3
-torch==2.1.0
-numpy==1.26.4
+transformers>=4.40.0
+peft>=0.10.0
+trl>=0.8.6
+bitsandbytes>=0.43.0
+datasets>=2.19.0
+accelerate>=0.29.0
+sentence-transformers>=2.7.0
+faiss-cpu>=1.9.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+torch>=2.1.0
+numpy>=1.26.0

@@ -1,0 +1,273 @@
+[
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"I want to join Gojan college"},
+      {"role":"ai","text":"Great choice! Gojan offers 8 engineering courses plus MBA. Which course are you interested in?"},
+      {"role":"user","text":"Computer Science"},
+      {"role":"ai","text":"CSE at Gojan is affiliated to Anna University. Admission is through TNEA counselling, code 1123. Have you appeared for 12th?"},
+      {"role":"user","text":"Yes I got 85 percent"},
+      {"role":"ai","text":"Excellent! With 85% you have a strong chance. Apply at https://forms.gle/W1pEKX2kHno97YfK9 or call +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Tell me about Gojan placements"},
+      {"role":"ai","text":"Gojan has an active placement cell. TCS, Wipro, Infosys and other companies visit for recruitment. Want to know about a specific department?"},
+      {"role":"user","text":"What about CSE placements?"},
+      {"role":"ai","text":"CSE students get placed in top IT companies. The placement cell also provides training in aptitude and communication skills."},
+      {"role":"user","text":"What package do they get?"},
+      {"role":"ai","text":"Package depends on skills and company. For detailed placement stats, contact the placement cell at +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Does Gojan have hostel?"},
+      {"role":"ai","text":"Yes! Gojan has separate hostels for boys and girls with furnished rooms, mess facility, WiFi, and 24/7 security."},
+      {"role":"user","text":"How much is the hostel fee?"},
+      {"role":"ai","text":"For hostel fee details, please contact the admissions office at +91 7010723984 or email gsbt@gojaneducation.tech."},
+      {"role":"user","text":"Is food included?"},
+      {"role":"ai","text":"Yes, the hostel has a mess facility that provides meals. Details about meal plans are available from the hostel office."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"What is the campus like?"},
+      {"role":"ai","text":"Gojan has a beautiful 80-acre campus at Redhills, Chennai with modern labs, library, sports grounds, and green spaces."},
+      {"role":"user","text":"Do they have WiFi?"},
+      {"role":"ai","text":"Yes, the campus has WiFi connectivity. Plus there's a well-equipped computer center with high-speed internet."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"I want to study MBA at Gojan"},
+      {"role":"ai","text":"Great! Gojan offers MBA under the School of Management. Admission is through TANCET exam by Anna University."},
+      {"role":"user","text":"What is TANCET?"},
+      {"role":"ai","text":"TANCET is Tamil Nadu Common Entrance Test conducted by Anna University for PG admissions. You need a bachelor's degree to apply."},
+      {"role":"user","text":"When is the exam?"},
+      {"role":"ai","text":"TANCET is usually held in February-March. Check Anna University website for exact dates. For Gojan MBA info, call +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Tell me about clubs at Gojan"},
+      {"role":"ai","text":"Gojan has various student clubs - Coding Club, Robotics Club, IEEE Student Branch, NSS, Cultural Committee, and Sports Club."},
+      {"role":"user","text":"How do I join the coding club?"},
+      {"role":"ai","text":"You can join during the club registration at the start of each academic year. Contact your department faculty coordinator for details."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Is there a bus from Tambaram?"},
+      {"role":"ai","text":"Gojan provides bus transport from various parts of Chennai. For specific routes and pickup points, contact +91 7010723984."},
+      {"role":"user","text":"How long is the journey?"},
+      {"role":"ai","text":"Journey time depends on traffic. The campus is at Redhills. Contact the transport department for route-specific timings."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"What about the AI ML course?"},
+      {"role":"ai","text":"B.E. AI-ML at Gojan covers artificial intelligence, machine learning, deep learning, data science. It's a future-oriented programme."},
+      {"role":"user","text":"Is it new?"},
+      {"role":"ai","text":"Yes, AI-ML is one of the newer programmes at Gojan, designed to meet industry demand. It is affiliated to Anna University."},
+      {"role":"user","text":"What are the job prospects?"},
+      {"role":"ai","text":"AI-ML graduates can work as data scientists, ML engineers, AI developers in companies like Google, Amazon, TCS, and startups."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Tell me about Cyber Security course"},
+      {"role":"ai","text":"B.E. Cyber Security at Gojan covers network security, ethical hacking, cryptography, and digital forensics."},
+      {"role":"user","text":"Are there any certifications?"},
+      {"role":"ai","text":"The department may offer industry-relevant certifications. Contact the CSE department for specific certification programmes available."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Does Gojan have scholarships?"},
+      {"role":"ai","text":"Yes! Gojan facilitates government scholarships and offers institutional scholarships based on academic merit."},
+      {"role":"user","text":"How do I apply for scholarship?"},
+      {"role":"ai","text":"Apply through the National Scholarship Portal for government schemes. For institutional scholarships, contact the office at +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "ta",
+    "turns": [
+      {"role":"user","text":"\u0b95\u0bcb\u0b9c\u0ba9\u0bcd\u0bb2 MBA \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0ba3\u0bc1\u0bae\u0bcd"},
+      {"role":"ai","text":"\u0ba8\u0bb2\u0bcd\u0bb2\u0ba4\u0bc1! MBA admission-ku TANCET exam \u0b8e\u0bb4\u0bc1\u0ba4\u0ba3\u0bc1\u0bae\u0bcd. \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bc1\u0b95\u0bcd\u0b95\u0bc1 TANCET \u0baa\u0bb1\u0bcd\u0bb1\u0bbf \u0ba4\u0bc6\u0bb0\u0bbf\u0baf\u0bc1\u0bae\u0bbe?"},
+      {"role":"user","text":"\u0b87\u0bb2\u0bcd\u0bb2 \u0b9a\u0bca\u0bb2\u0bcd\u0bb2\u0bc1\u0b99\u0bcd\u0b95"},
+      {"role":"ai","text":"TANCET \u0b8e\u0ba9\u0bcd\u0baa\u0ba4\u0bc1 Tamil Nadu Common Entrance Test. Anna University \u0ba8\u0b9f\u0ba4\u0bcd\u0ba4\u0bc1\u0ba4\u0bc1. Pass \u0b86\u0ba9\u0bbe Gojan MBA-\u0bb2 \u0b9a\u0bc7\u0bb0\u0bb2\u0bbe\u0bae\u0bcd."}
+    ]
+  },
+  {
+    "lang": "ta",
+    "turns": [
+      {"role":"user","text":"\u0b95\u0bcb\u0b9c\u0ba9\u0bcd\u0bb2 \u0b8e\u0ba9\u0bcd\u0ba9 courses \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1?"},
+      {"role":"ai","text":"8 UG courses \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1: CSE, ECE, IT, AI-ML, Cyber Security, Aero, Mech, Medical Electronics. MBA \u0b89\u0bae\u0bcd \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1."},
+      {"role":"user","text":"CSE \u0baa\u0bb1\u0bcd\u0bb1\u0bbf \u0b9a\u0bca\u0bb2\u0bcd\u0bb2\u0bc1\u0b99\u0bcd\u0b95"},
+      {"role":"ai","text":"CSE department-\u0bb2 programming, data structures, AI, ML, web development \u0b8e\u0bb2\u0bcd\u0bb2\u0bbe\u0bae\u0bcd \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0bb2\u0bbe\u0bae\u0bcd. Anna University affiliated."}
+    ]
+  },
+  {
+    "lang": "ta",
+    "turns": [
+      {"role":"user","text":"placement \u0baa\u0bb1\u0bcd\u0bb1\u0bbf \u0b9a\u0bca\u0bb2\u0bcd\u0bb2\u0bc1\u0b99\u0bcd\u0b95"},
+      {"role":"ai","text":"Placement cell active-\u0b86 \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1. TCS, Wipro, Infosys \u0bb5\u0bb0\u0bc1\u0bb5\u0bbe\u0b99\u0bcd\u0b95. Training \u0b89\u0bae\u0bcd \u0b95\u0bca\u0b9f\u0bc1\u0baa\u0bcd\u0baa\u0bbe\u0b99\u0bcd\u0b95."},
+      {"role":"user","text":"package \u0b8e\u0bb5\u0bcd\u0bb3\u0bcb?"},
+      {"role":"ai","text":"Package skills-\u0b90 \u0baa\u0bca\u0bb1\u0bc1\u0ba4\u0bcd\u0ba4\u0bc1 \u0bae\u0bbe\u0bb1\u0bc1\u0bae\u0bcd. Placement cell-\u0b90 +91 7010723984-\u0bb2 contact \u0baa\u0ba3\u0bcd\u0ba3\u0bc1\u0b99\u0bcd\u0b95."}
+    ]
+  },
+  {
+    "lang": "ta",
+    "turns": [
+      {"role":"user","text":"hostel \u0b8e\u0baa\u0bcd\u0baa\u0b9f\u0bbf \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1?"},
+      {"role":"ai","text":"Boys, girls \u0ba4\u0ba9\u0bbf\u0ba4\u0bcd\u0ba4\u0ba9\u0bbf\u0baf\u0bbe hostel \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1. Furnished rooms, mess, WiFi \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1."},
+      {"role":"user","text":"fees \u0b8e\u0bb5\u0bcd\u0bb3\u0bcb hostel-\u0b95\u0bc1?"},
+      {"role":"ai","text":"Hostel fees details-\u0b95\u0bcd\u0b95\u0bc1 admissions office call \u0baa\u0ba3\u0bcd\u0ba3\u0bc1\u0b99\u0bcd\u0b95: +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "ta",
+    "turns": [
+      {"role":"user","text":"campus \u0b8e\u0baa\u0bcd\u0baa\u0b9f\u0bbf \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1?"},
+      {"role":"ai","text":"80 acres campus, Redhills Chennai-\u0bb2 \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1. Labs, library, sports ground, WiFi \u0b8e\u0bb2\u0bcd\u0bb2\u0bbe\u0bae\u0bcd \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1."},
+      {"role":"user","text":"library \u0ba8\u0bb2\u0bcd\u0bb2\u0bbe \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bbe?"},
+      {"role":"ai","text":"\u0b86\u0bae\u0bbe, \u0ba8\u0bbf\u0bb1\u0bc8\u0baf books, journals, digital resources \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1. OPAC system \u0b89\u0bae\u0bcd \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Hey Gojan, placement pathi sollu"},
+      {"role":"ai","text":"Gojan la active placement cell iruku. TCS, Wipro, Infosys mathiri companies vanthu recruit pannuvanga. Enna therinja konjam?"},
+      {"role":"user","text":"Package evvalavu kittum?"},
+      {"role":"ai","text":"Package course and skills pathi depend aagum. Placement cell ku directly contact pannalaam: +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Gojan la admission eppadi?"},
+      {"role":"ai","text":"Engineering ku TNEA counselling la apply pananum. TNEA code 1123. 12th PCM la 45% venum."},
+      {"role":"user","text":"Online apply pannalama?"},
+      {"role":"ai","text":"Aama! https://forms.gle/W1pEKX2kHno97YfK9 la online apply pannu. Illa na +91 7010723984 la call pannu."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Hostel pathi sollu"},
+      {"role":"ai","text":"Boys hostel um girls hostel um separate-a iruku. Furnished rooms, mess, WiFi ellam iruku."},
+      {"role":"user","text":"Food nalla irukuma?"},
+      {"role":"ai","text":"Mess la meals provide pannuvanga. Vegetarian and non-veg options iruku. Hostel office la details kelu."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"AI ML course pathi sollu"},
+      {"role":"ai","text":"B.E. AI-ML course iruku Gojan la. Artificial Intelligence, Machine Learning, Deep Learning, Data Science ellam cover pannuvanga."},
+      {"role":"user","text":"Job prospects eppadi irukkum?"},
+      {"role":"ai","text":"AI-ML graduates ku romba demand iruku. Data Scientist, ML Engineer, AI Developer positions la join pannalam. Google, Amazon, startups ellam opportunities iruku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Campus eppadi iruku?"},
+      {"role":"ai","text":"80 acre campus, Redhills Chennai la iruku. Modern labs, library, sports ground, WiFi ellam iruku. Nalla spacious-a iruku."},
+      {"role":"user","text":"WiFi speed nalla irukuma?"},
+      {"role":"ai","text":"Campus WiFi iruku, plus computer center la high-speed internet iruku. Students ku access iruku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Bus route iruka Tambaram la irundhu?"},
+      {"role":"ai","text":"Aama, Chennai oda pala areas la irundhu bus iruku. Tambaram route pathi transport department la kelu: +91 7010723984."},
+      {"role":"user","text":"Timing enna?"},
+      {"role":"ai","text":"Bus timing morning college time ku match-a irukum. Exact time ku transport office la check pannu."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Scholarship iruka?"},
+      {"role":"ai","text":"Aama, government scholarships um institutional scholarships um iruku. Merit basis la kudupanga."},
+      {"role":"user","text":"Eppadi apply pananum?"},
+      {"role":"ai","text":"Government scholarships ku National Scholarship Portal la apply pannu. College scholarships ku office ku po: +91 7010723984."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Events nadakkuma college la?"},
+      {"role":"ai","text":"Aama, technical symposium, cultural fest, sports day, guest lectures, workshops ellam nadakkum regularly."},
+      {"role":"user","text":"Coding competition irukuma?"},
+      {"role":"ai","text":"Aama, Gojan Clubs under coding competitions, hackathons, project exhibitions ellam organize pannuvanga."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Gojan la research nadakkuma?"},
+      {"role":"ai","text":"Aama, faculty um students um research papers publish pannuvanga national and international journals la."},
+      {"role":"user","text":"Students ku opportunity irukuma?"},
+      {"role":"ai","text":"Aama, faculty guidance la students um research projects pannalam. Industry collaborations um iruku."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"What is AICTE?"},
+      {"role":"ai","text":"AICTE stands for All India Council for Technical Education. It regulates technical education in India. Gojan is recognized by AICTE."},
+      {"role":"user","text":"Why is AICTE important?"},
+      {"role":"ai","text":"AICTE approval is mandatory for all engineering and MBA colleges. It ensures your degree is valid and recognized across India."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Tell me about Aeronautical Engineering"},
+      {"role":"ai","text":"B.E. Aeronautical Engineering at Gojan covers aircraft design, propulsion, aerodynamics. It's affiliated to Anna University."},
+      {"role":"user","text":"What are the career options?"},
+      {"role":"ai","text":"Aeronautical graduates can work in HAL, ISRO, airlines, aerospace companies, and defense organizations."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Can I visit the campus?"},
+      {"role":"ai","text":"Yes! You can visit Gojan campus at Redhills, Chennai. Call +91 7010723984 to schedule a campus tour."},
+      {"role":"user","text":"What is the best time to visit?"},
+      {"role":"ai","text":"Visit on weekdays between 9 AM and 4 PM when classes are in session. You can see labs, library, and meet faculty."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"Tell me about the ED Cell"},
+      {"role":"ai","text":"The Entrepreneurship Development Cell at Gojan nurtures student entrepreneurs with workshops, mentoring, and startup support."},
+      {"role":"user","text":"Can students start their own business?"},
+      {"role":"ai","text":"Yes! The ED Cell encourages student startups with guidance, incubation support, and industry connections."}
+    ]
+  },
+  {
+    "lang": "en",
+    "turns": [
+      {"role":"user","text":"What is the faculty like?"},
+      {"role":"ai","text":"Gojan has experienced professors with doctoral degrees and industry experience. The student-faculty ratio is maintained well."},
+      {"role":"user","text":"Are they approachable?"},
+      {"role":"ai","text":"Yes, faculty members are known to be approachable and supportive. They provide mentoring beyond regular classes."}
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+# Environments
+venv/
+env/
+.env
+
+# Built LLM Models & Vector DB
+models/gguf/
+models/lora_adapter/
+vector_db/
+*.gguf
+*.bin
+*.index
+*.pkl
+
+# Data (Raw/Chunked)
+data/chunks/
+data/raw/
+data/qa_dataset/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Auto-generated helper scripts
+colab_importer.py
+build_colab_importer.py
