@@ -144,9 +144,10 @@ def detect_wake_word(text):
     # STRATEGY 2 — Fuzzy syllable matching
     words = text_clean.split()
     for i, word in enumerate(words):
-        if (word.startswith("go") and len(word) >= 4) or \
-           (word.startswith("goj")) or \
-           (word.startswith("ko") and len(word) >= 4):
+        # Check if any word sounds like "gojan" — require 'goj' or 'go' with 'j'
+        if word.startswith("goj") or \
+           (word.startswith("go") and "j" in word and len(word) >= 4) or \
+           (word.startswith("ko") and "j" in word and len(word) >= 4):
             return True
         if i < len(words) - 1:
             bigram = word + " " + words[i + 1]
@@ -154,13 +155,15 @@ def detect_wake_word(text):
                           "go chan", "hey jan", "hey john"]:
                 return True
 
-    # STRATEGY 3 — Character similarity score
+    # STRATEGY 3 — Character similarity score (unique chars only)
     TARGET = "gojan"
+    target_chars = set(TARGET)
     for word in words:
         if len(word) >= 4:
-            common = sum(1 for c in word if c in TARGET)
-            score = common / len(TARGET)
-            if score >= 0.7:
+            word_chars = set(word)
+            common = len(word_chars & target_chars)
+            score = common / len(target_chars)
+            if score >= 0.8:   # 80% unique character overlap
                 return True
 
     # STRATEGY 4 — Levenshtein distance
