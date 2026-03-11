@@ -1,0 +1,15 @@
+# Gojan AI Assistant — Local Dependencies (Phase B, CPU Only)
+# Install: pip install -r requirements_local.txt
+#
+# NOTE: llama-cpp-python must be installed with:
+#   set CMAKE_ARGS=-DLLAMA_CUBLAS=off
+#   pip install llama-cpp-python==0.2.56
+
+faster-whisper==1.0.3
+llama-cpp-python==0.2.56
+sentence-transformers==2.7.0
+faiss-cpu==1.8.0
+sounddevice==0.4.6
+scipy==1.11.4
+numpy==1.26.4
+pyttsx3==2.90
