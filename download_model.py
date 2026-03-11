@@ -3,9 +3,9 @@ import urllib.request
 import os
 import sys
 
-url = "https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf"
+url = "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 dest_dir = r"c:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\models\gguf"
-dest_file = os.path.join(dest_dir, "zephyr-7b-beta.Q4_K_M.gguf")
+dest_file = os.path.join(dest_dir, "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
 
 os.makedirs(dest_dir, exist_ok=True)
 

@@ -1,8 +1,9 @@
 """
-Phase B - LLM Inference Service (CPU Only) v3.0 (Pure RAG with Zephyr-7B)
+Phase B - LLM Inference Service (CPU Only) v3.2 (Pure RAG with TinyLlama-Chat)
 ==========================================================================
-Uses Zephyr-7B-beta Q4_K_M via ctransformers.
+Uses TinyLlama-1.1B-Chat-v1.0 Q4_K_M via ctransformers.
 Strict FAISS RAG architecture - no hardcoded facts.
+Ultra-strict prompt formatting for 1B models.
 """
 
 import os
@@ -14,33 +15,27 @@ from ctransformers import AutoModelForCausalLM
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# Pointing to the new "Best of Best" Zephyr model
-MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "gguf", "zephyr-7b-beta.Q4_K_M.gguf")
+MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "gguf", "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
 
-# Zephyr tokens
+# TinyLlama tokens
 TAG_SYS = "<|system|>"
 TAG_USR = "<|user|>"
 TAG_AST = "<|assistant|>"
 EOS = "</s>"
 
-# Tags to strip completely from output
-_STRIP_TAGS = [TAG_SYS, TAG_USR, TAG_AST, EOS]
+_STRIP_TAGS = [TAG_SYS, TAG_USR, TAG_AST, EOS, "User Question:", "Response:", "Answer:", "Assistant:"]
 
 # ---------------------------------------------------------------------------
 # Strict System Prompt
 # ---------------------------------------------------------------------------
+# 1B models need extremely simple, capitalised instructions
 SYSTEM_PROMPT = (
-    "You are Gojan AI, a knowledgeable and friendly voice assistant for Gojan "
-    "School of Business and Technology (GSBT), Chennai.\n\n"
-    "CRITICAL RULES:\n"
-    "1. You MUST answer the user's question using ONLY the provided CONTEXT.\n"
-    "2. If the CONTEXT does not contain the answer, say EXACTLY: "
-    "'I do not have that information. Please contact the college directly at "
-    "+91 7010723984.' DO NOT GUESS.\n"
-    "3. Keep your answers brief, maximum 2 to 3 sentences (it will be spoken aloud).\n"
-    "4. Reply EXACTLY in the language requested below.\n"
-    "5. Be helpful and warm, like a senior student.\n"
-    "6. Do not say 'According to the context' - simply state the facts directly."
+    "You are a strict question-answering assistant for Gojan College. "
+    "Rule 1: Answer using ONLY the provided CONTEXT text.\n"
+    "Rule 2: If the answer is NOT in the CONTEXT, you must reply EXACTLY with: "
+    "'I do not have that information. Please contact the college at +91 7010723984.'\n"
+    "Rule 3: Keep the answer under two sentences.\n"
+    "Rule 4: Do not say 'Response:' or 'Assistant:'. Just give the answer directly."
 )
 
 
@@ -48,62 +43,52 @@ SYSTEM_PROMPT = (
 # Model loading
 # ---------------------------------------------------------------------------
 def load_model():
-    """Load the Zephyr-7B GGUF model for CPU inference via ctransformers."""
+    """Load the TinyLlama-Chat GGUF model."""
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(
-            "Zephyr-7B model not found: " + MODEL_PATH + "\n"
-            "Please wait for the download to complete."
-        )
-    print("  Loading LLM: " + os.path.basename(MODEL_PATH) + " (Zephyr-7B)...")
+        raise FileNotFoundError("Model not found: " + MODEL_PATH)
+    print("  Loading LLM: " + os.path.basename(MODEL_PATH))
     
-    # model_type="mistral" works perfectly for Zephyr
     llm = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
-        model_type="mistral",
-        context_length=2048,
+        model_type="llama",
+        context_length=1024,
         threads=4,
     )
     return llm
 
 
 # ---------------------------------------------------------------------------
-# Prompt builder (Zephyr Chat Template)
+# Prompt builder
 # ---------------------------------------------------------------------------
 def _build_prompt(question, context, detected_language, conversation_history):
-    """Build the Zephyr-compatible chat prompt strictly using RAG context."""
+    """Build the prompt. Strict boundaries to prevent 1B model confusion."""
 
-    # Language generation instruction
+    # 1B models struggle with complex language rules, keep it direct.
     lang_map = {
-        "english":  "Respond in clear simple English.",
-        "tanglish": ("Respond in Tanglish - mix Tamil words naturally with "
-                     "English script. Example: 'Gojan la courses iruku.'"),
-        "tamil":    "Respond fully in Tamil script.",
+        "english":  "Write the answer in English.",
+        "tanglish": "Write the answer using Tamil words written in English alphabet (Tanglish). Example: 'Gojan la courses iruku'.",
+        "tamil":    "Write the answer fully in Tamil script.",
     }
     lang_instruction = lang_map.get(detected_language, lang_map["english"])
 
-    # Zephyr `<|system|>\n...</s>\n<|user|>\n...</s>\n<|assistant|>` format
     parts = []
     
-    # --- System Message ---
-    sys_content = SYSTEM_PROMPT + "\n\nLANGUAGE RULE: " + lang_instruction
+    # System Message
+    sys_content = SYSTEM_PROMPT + "\nRule 5: " + lang_instruction
     parts.append(TAG_SYS + "\n" + sys_content + EOS + "\n")
     
-    # --- User Message (injecting Context) ---
-    user_content = ""
-    if conversation_history:
-        user_content += "CONVERSATION HISTORY:\n" + conversation_history + "\n\n"
-        
-    user_content += "CONTEXT FROM KNOWLEDGE BASE:\n"
+    # User Message: Explicit structure
+    user_content = "[CONTEXT]:\n"
     if context:
-        user_content += context + "\n\n"
+        user_content += context + "\n"
     else:
-        user_content += "(No context found)\n\n"
+        user_content += "NONE\n"
         
-    user_content += "USER QUESTION: " + question
+    user_content += "\n[QUESTION]: " + question
     
     parts.append(TAG_USR + "\n" + user_content + EOS + "\n")
     
-    # --- Assistant Prompt ---
+    # Assistant Prompt
     parts.append(TAG_AST + "\n")
     
     return "".join(parts)
@@ -114,7 +99,7 @@ def _build_prompt(question, context, detected_language, conversation_history):
 # ---------------------------------------------------------------------------
 def clean_response(text, question=""):
     """Clean raw LLM output for voice delivery."""
-    if not text or len(text.strip()) < 3:
+    if not text:
         return ""
 
     cleaned = text.strip()
@@ -128,9 +113,13 @@ def clean_response(text, question=""):
     cleaned = re.sub(r"[*#_`]", "", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-    # Attempt to limit to 3 sentences conceptually for short TTS
+    # If it leaked its own instruction
+    if "please contact the college" in cleaned.lower() and "i do not have" not in cleaned.lower():
+         return get_fallback()
+
+    # Limit to 2 sentences
     sentences = re.split(r"(?<=[.!?])\s+", cleaned)
-    cleaned = " ".join(sentences[:3])
+    cleaned = " ".join(sentences[:2])
 
     return cleaned.strip()
 
@@ -139,10 +128,10 @@ def clean_response(text, question=""):
 # Generic fallback
 # ---------------------------------------------------------------------------
 def get_fallback(language="english"):
-    """Generic offline fallback if the LLM completely fails or crashes."""
+    """Fallback if the LLM completely fails or hallucinates strongly."""
     fallbacks = {
         "english": (
-            "I seem to be having trouble processing that right now. "
+            "I do not have that information. "
             "Please contact Gojan college directly at +91 7010723984."
         ),
         "tanglish": (
@@ -168,18 +157,34 @@ def generate_answer(llm, question, context,
                            conversation_history)
 
     try:
-        # Zephyr hyperparameters optimized for precise RAG reading
         response = llm(
             prompt,
-            max_new_tokens=256,
-            temperature=0.1,  # extremely low to prevent hallucination
+            max_new_tokens=100,
+            temperature=0.01,  # near zero to force extraction and prevent hallucination
             top_p=0.9,
-            repetition_penalty=1.1,
-            stop=[EOS, TAG_USR, TAG_SYS],
+            repetition_penalty=1.15,
+            stop=[EOS, TAG_USR, TAG_SYS, "\n\n", "User:", "Question:"],
         )
 
         raw_text = response.strip()
         answer = clean_response(raw_text, question)
+
+        # Basic Anti-Hallucination Filter: 
+        # 1B models often invent times, dates, or numbers when they don't know the answer.
+        # If the answer contains numbers NOT present in the context, it's a hallucination.
+        if context:
+            ctx_lower = context.lower()
+            # Find all numbers in the generated answer
+            ans_numbers = re.findall(r'\b\d+\b', answer)
+            for num in ans_numbers:
+                if num not in ctx_lower:
+                    # The LLM invented a number not in the FAISS source text -> Reject
+                    return get_fallback(detected_language)
+
+        # Catch hallucinated library timing if model forces it despite zero temp
+        hallucination_keywords = ["10 am", "5 pm", "10:30", "weekdays"]
+        if not context and any(h in answer.lower() for h in hallucination_keywords):
+            return get_fallback(detected_language)
 
         if len(answer.strip()) < 5:
             return get_fallback(detected_language)
