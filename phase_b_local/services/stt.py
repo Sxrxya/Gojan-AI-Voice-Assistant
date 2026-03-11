@@ -53,9 +53,16 @@ def record_audio(duration=6, sample_rate=SAMPLE_RATE):
     return audio.flatten()
 
 
-def is_speech(audio_data, threshold=0.01):
-    """Check if audio contains speech above noise threshold."""
-    rms = np.sqrt(np.mean(audio_data ** 2))
+def is_speech(audio_data, threshold=0.005):
+    """
+    Check if audio contains speech above noise threshold.
+    Lowered threshold from 0.01 to 0.005 so soft speech
+    like 'Hey Gojan' spoken at normal volume is not missed.
+    """
+    audio_array = np.array(audio_data, dtype=np.float32)
+    if audio_array.max() > 1.0:
+        audio_array = audio_array / 32768.0
+    rms = np.sqrt(np.mean(audio_array ** 2))
     return rms > threshold
 
 
