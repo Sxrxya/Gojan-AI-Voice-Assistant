@@ -1,15 +1,14 @@
 """
-Gojan AI Voice Assistant - Interactive Main Loop
-==================================================
-Boots all models, listens for wake word, processes multilingual
-speech, retrieves context, generates answers, speaks responses.
-
-Usage: python phase_b_local/main.py
-Debug: python phase_b_local/main.py --debug
+Gojan AI Voice Assistant - Interactive Main Loop v2.1
+======================================================
+Clean startup, reliable loop, hybrid Indian voice.
+Runs from project root: python phase_b_local/main.py
+Debug mode:              python phase_b_local/main.py --debug
 """
 
 import sys
 import os
+import re
 import time
 import datetime
 import tempfile
@@ -26,125 +25,112 @@ from phase_b_local.services.stt import (
     SAMPLE_RATE,
 )
 from phase_b_local.services.retriever import load_retriever, retrieve, format_context
-from phase_b_local.services.llm import load_model as load_llm, generate_answer
-from phase_b_local.services.tts import load_tts, speak
+from phase_b_local.services.llm import (
+    load_model as load_llm, generate_answer, get_fallback,
+)
+from phase_b_local.services.tts import load_tts, speak, play_beep
 
 
-# ---------------------------------------------------------------------------
+# =====================================================================
 # Conversation Memory
-# ---------------------------------------------------------------------------
+# =====================================================================
 class ConversationMemory:
-    """Stores last N exchanges for multi-turn context."""
-
     MAX_TURNS = 5
 
     def __init__(self):
         self.turns = []
         self.last_answer = ""
+        self.last_topic = None
 
     def add_turn(self, role, text, language="english"):
         self.turns.append({
             "role": role,
             "content": text,
             "language": language,
-            "timestamp": datetime.datetime.now().isoformat(),
+            "time": time.time(),
         })
-        max_entries = self.MAX_TURNS * 2
-        if len(self.turns) > max_entries:
-            self.turns = self.turns[-max_entries:]
+        cap = self.MAX_TURNS * 2
+        if len(self.turns) > cap:
+            self.turns = self.turns[-cap:]
 
     def get_context_window(self):
         if not self.turns:
             return ""
-        lines = []
-        for t in self.turns:
-            prefix = "User" if t["role"] == "user" else "Assistant"
-            lines.append(prefix + ": " + t["content"])
-        return "\n".join(lines)
+        recent = self.turns[-6:]
+        return "\n".join(
+            t["role"].upper() + ": " + t["content"]
+            for t in recent
+        )
 
     def get_last_language(self):
         for t in reversed(self.turns):
-            return t.get("language", "english")
+            if t["role"] == "user":
+                return t.get("language", "english")
         return "english"
 
     def clear(self):
         self.turns.clear()
         self.last_answer = ""
+        self.last_topic = None
 
 
-# ---------------------------------------------------------------------------
-# Conversation State
-# ---------------------------------------------------------------------------
-class ConversationState:
-    def __init__(self):
-        self.current_topic = "general"
-        self.follow_up_count = 0
-        self.user_language_preference = "auto"
+# =====================================================================
+# Intent Detection
+# =====================================================================
+FAREWELL_WORDS = ["bye", "goodbye", "stop", "exit", "close",
+                  "poganum", "muppu"]
+REPEAT_WORDS   = ["repeat", "again", "meeendum", "sollu again"]
+MORE_WORDS     = ["more", "details", "explain", "innum", "tell me more"]
+RESET_WORDS    = ["reset", "new topic", "puthusha", "clear", "restart"]
+THANKS_WORDS   = ["thanks", "thank you", "nanri"]
 
 
-# ---------------------------------------------------------------------------
-# Intent word lists
-# ---------------------------------------------------------------------------
-FAREWELL_WORDS = ["bye", "goodbye", "\u0baa\u0bc8", "\u0baa\u0bcb\u0b95\u0ba3\u0bc1\u0bae\u0bcd", "poganum", "thanks bye"]
-REPEAT_WORDS = ["repeat", "again", "\u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd", "meeendum sollu"]
-MORE_WORDS = ["more", "details", "\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd", "innum sollu", "explain"]
-RESET_WORDS = ["reset", "new topic", "\u0baa\u0bc1\u0ba4\u0bc1\u0b9a\u0bbe", "puthusha"]
-THANKS_WORDS = ["thanks", "thank you", "\u0ba8\u0ba9\u0bcd\u0bb1\u0bbf", "nanri"]
+def _any_match(text, word_list):
+    lower = text.lower()
+    return any(w in lower for w in word_list)
 
 
-# ---------------------------------------------------------------------------
-# FIX 1 — Robust Wake Word Detection
-# ---------------------------------------------------------------------------
+def detect_intent(text):
+    if _any_match(text, FAREWELL_WORDS):
+        return "farewell"
+    if _any_match(text, REPEAT_WORDS):
+        return "repeat"
+    if _any_match(text, MORE_WORDS):
+        return "more"
+    if _any_match(text, RESET_WORDS):
+        return "reset"
+    if _any_match(text, THANKS_WORDS):
+        return "thanks"
+    return "question"
+
+
+# =====================================================================
+# Wake Word Detection (4-strategy, tested 18/18)
+# =====================================================================
+EXACT_WAKE_WORDS = [
+    "hey gojan", "gojan", "hi gojan", "hello gojan", "anna",
+    "hey gojen", "go john", "go jan", "hey go jan", "a gojan",
+    "okay gojan", "ok gojan", "gojan ai", "ko jan", "gojon",
+    "gojhan", "hey goes in", "goes in", "hey jen", "jen",
+    "hey golden", "golden", "hey gorgon", "gorgon",
+]
+
+
 def detect_wake_word(text):
-    """
-    Robust wake word detection that handles Whisper transcription
-    variations of 'Hey Gojan', 'Gojan', 'Anna' etc.
-    Uses multiple strategies so at least one always matches.
-    """
     if not text or len(text.strip()) < 2:
         return False
 
     text_lower = text.lower().strip()
-    text_clean = text_lower.replace(",", "").replace(".", "") \
-                           .replace("!", "").replace("?", "")
+    text_clean = re.sub(r"[^\w\s]", "", text_lower)
 
-    # STRATEGY 1 — Exact wake word list (most common transcriptions)
-    EXACT_WAKE_WORDS = [
-        "hey gojan",
-        "gojan",
-        "hi gojan",
-        "hello gojan",
-        "anna",
-        "hey gojen",
-        "go john",
-        "go jan",
-        "hey go jan",
-        "a gojan",
-        "okay gojan",
-        "ok gojan",
-        "gojan ai",
-        "\u0b95\u0bcb\u0b9c\u0ba9\u0bcd",
-        "ko jan",
-        "gojon",
-        "gojhan",
-        # Extra Whisper variations observed in debug logs:
-        "hey goes in",
-        "goes in",
-        "hey jen",
-        "jen",
-        "hey golden",
-        "golden",
-        "hey gorgon",
-        "gorgon",
-    ]
+    # Strategy 1 - Exact matches
     for wake in EXACT_WAKE_WORDS:
         if wake in text_clean:
             return True
 
-    # STRATEGY 2 — Fuzzy syllable matching
+    # Strategy 2 - Fuzzy syllable matching
     words = text_clean.split()
     for i, word in enumerate(words):
-        # Check if any word sounds like "gojan" — require 'goj' or 'go' with 'j'
         if word.startswith("goj") or \
            (word.startswith("go") and "j" in word and len(word) >= 4) or \
            (word.startswith("ko") and "j" in word and len(word) >= 4):
@@ -155,299 +141,348 @@ def detect_wake_word(text):
                           "go chan", "hey jan", "hey john"]:
                 return True
 
-    # STRATEGY 3 — Character similarity score (unique chars only)
-    TARGET = "gojan"
-    target_chars = set(TARGET)
+    # Strategy 3 - Character similarity (unique chars, 80%)
+    target_chars = set("gojan")
     for word in words:
         if len(word) >= 4:
-            word_chars = set(word)
-            common = len(word_chars & target_chars)
-            score = common / len(target_chars)
-            if score >= 0.8:   # 80% unique character overlap
+            common = len(set(word) & target_chars)
+            if common / len(target_chars) >= 0.8:
                 return True
 
-    # STRATEGY 4 — Levenshtein distance
-    def levenshtein(s1, s2):
+    # Strategy 4 - Levenshtein distance <= 2
+    def _lev(s1, s2):
         if len(s1) < len(s2):
-            return levenshtein(s2, s1)
+            return _lev(s2, s1)
         if len(s2) == 0:
             return len(s1)
         prev = range(len(s2) + 1)
-        for i, c1 in enumerate(s1):
-            curr = [i + 1]
+        for c1 in s1:
+            curr = [prev[0] + 1]
             for j, c2 in enumerate(s2):
-                curr.append(min(
-                    prev[j + 1] + 1,
-                    curr[j] + 1,
-                    prev[j] + (c1 != c2)
-                ))
+                curr.append(min(prev[j + 1] + 1, curr[j] + 1,
+                                prev[j] + (c1 != c2)))
             prev = curr
         return prev[-1]
 
     for word in words:
-        if len(word) >= 4:
-            dist = levenshtein(word, "gojan")
-            if dist <= 2:
-                return True
+        if len(word) >= 4 and _lev(word, "gojan") <= 2:
+            return True
 
     return False
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-def play_beep():
-    """Play a short 200ms beep using numpy + sounddevice."""
-    import sounddevice as sd
-    duration = 0.2
-    freq = 880
-    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), endpoint=False)
-    wave = 0.3 * np.sin(2 * np.pi * freq * t).astype(np.float32)
-    sd.play(wave, samplerate=SAMPLE_RATE)
-    sd.wait()
-
-
-def get_greeting():
-    """Return a greeting based on time of day."""
-    hour = datetime.datetime.now().hour
-    if 6 <= hour < 12:
-        return "Good morning! \u0b95\u0bbe\u0bb2\u0bc8 \u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd!"
-    elif 12 <= hour < 17:
-        return "Good afternoon! \u0bae\u0ba4\u0bbf\u0baf \u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd!"
-    elif 17 <= hour < 21:
-        return "Good evening! \u0bae\u0bbe\u0bb2\u0bc8 \u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd!"
-    else:
-        return "Hello! \u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd!"
-
-
-def _any_match(text, word_list):
-    """Check if any word in word_list appears in text (case-insensitive)."""
-    lower = text.lower()
-    return any(w in lower for w in word_list)
-
-
-# ---------------------------------------------------------------------------
-# FIX 3 — Debug Mode
-# ---------------------------------------------------------------------------
+# =====================================================================
+# Debug Mode
+# =====================================================================
 def run_debug():
-    print("\n\u2550\u2550\u2550\u2550\u2550\u2550 WAKE WORD DEBUG MODE \u2550\u2550\u2550\u2550\u2550\u2550")
-    print("Testing wake word detection without mic...\n")
+    print("\n" + "=" * 40)
+    print("  WAKE WORD DEBUG MODE")
+    print("=" * 40 + "\n")
 
-    TEST_TRANSCRIPTIONS = [
-        ("Hey Gojan",              True),
-        ("hey gojan",              True),
-        ("gojan",                  True),
-        ("Hi Gojan how are you",   True),
-        ("go jan tell me",         True),
-        ("hey go john",            True),
-        ("A Gojan",                True),
-        ("okay gojan listen",      True),
-        ("gojen",                  True),
-        ("gojhan",                 True),
-        ("Anna tell me",           True),
-        ("\u0b95\u0bcb\u0b9c\u0ba9\u0bcd",                  True),
-        ("hey goes in",            True),
-        ("hey jen",                True),
-        ("hello how are you",      False),
-        ("what is the time",       False),
-        ("random sentence here",   False),
-        ("good morning",           False),
+    tests = [
+        ("Hey Gojan", True), ("hey gojan", True), ("gojan", True),
+        ("Hi Gojan how are you", True), ("go jan tell me", True),
+        ("hey go john", True), ("A Gojan", True),
+        ("okay gojan listen", True), ("gojen", True),
+        ("gojhan", True), ("Anna tell me", True),
+        ("hey goes in", True), ("hey jen", True),
+        ("hello how are you", False), ("what is the time", False),
+        ("random sentence here", False), ("good morning", False),
+        ("thank you very much", False),
     ]
 
     passed = 0
     failed = []
-    for text, expected in TEST_TRANSCRIPTIONS:
+    for text, expected in tests:
         result = detect_wake_word(text)
-        status = "\u2713" if result == expected else "\u2717"
-        if result == expected:
+        ok = result == expected
+        mark = "PASS" if ok else "FAIL"
+        if ok:
             passed += 1
         else:
             failed.append((text, expected, result))
-        print(f"  {status} '{text}' \u2192 detected={result} expected={expected}")
+        print(f"  [{mark}] '{text}' -> detected={result} expected={expected}")
 
-    print(f"\nWake word test: {passed}/{len(TEST_TRANSCRIPTIONS)} passed")
+    print(f"\nResult: {passed}/{len(tests)} passed")
     if failed:
-        print("Failed cases:")
+        print("Failed:")
         for t, e, r in failed:
-            print(f"  Input: '{t}' | Expected: {e} | Got: {r}")
+            print(f"  '{t}' expected={e} got={r}")
     else:
-        print("\u2705 Wake word detection working perfectly")
-    print("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n")
+        print("All tests passed!")
+    print("=" * 40 + "\n")
     sys.exit(0)
 
 
-# ---------------------------------------------------------------------------
+# =====================================================================
+# Greeting
+# =====================================================================
+def get_greeting():
+    hour = datetime.datetime.now().hour
+    if 6 <= hour < 12:
+        return "Good morning! I am Gojan AI Assistant. Say Hey Gojan to ask me anything about Gojan College."
+    elif 12 <= hour < 17:
+        return "Good afternoon! I am Gojan AI Assistant. Say Hey Gojan to ask me anything about Gojan College."
+    elif 17 <= hour < 21:
+        return "Good evening! I am Gojan AI Assistant. Say Hey Gojan to ask me anything about Gojan College."
+    else:
+        return "Hello! I am Gojan AI Assistant. Say Hey Gojan to ask me anything about Gojan College."
+
+
+# =====================================================================
 # Boot Sequence
-# ---------------------------------------------------------------------------
+# =====================================================================
 def boot():
     print()
-    print("\u2554" + "\u2550" * 54 + "\u2557")
-    print("\u2551      GOJAN SCHOOL OF BUSINESS AND TECHNOLOGY       \u2551")
-    print("\u2551           AI VOICE ASSISTANT v2.0                   \u2551")
-    print("\u2551   Powered by TinyLlama + FAISS + Whisper            \u2551")
-    print("\u2551   Languages: English | Tamil | Tanglish             \u2551")
-    print("\u255a" + "\u2550" * 54 + "\u255d")
+    print("=" * 58)
+    print("  GOJAN SCHOOL OF BUSINESS AND TECHNOLOGY")
+    print("  AI VOICE ASSISTANT v2.1")
+    print("  English | Tamil | Tanglish  -  Offline + Indian Voice")
+    print("=" * 58)
     print()
 
     t0 = time.time()
+    components = {}
+    failed = []
 
+    # 1 - STT
     print("[1/4] Loading Speech Recognition (Whisper tiny)...")
-    stt_model = load_stt()
-    print("      \u2713 Done ({:.1f}s)".format(time.time() - t0))
+    try:
+        components["stt"] = load_stt()
+        print("      Done ({:.1f}s)".format(time.time() - t0))
+    except Exception as e:
+        print("      FAILED: " + str(e))
+        failed.append("STT")
 
+    # 2 - FAISS
     print("[2/4] Loading Knowledge Base (FAISS)...")
-    index, documents, embed_model = load_retriever()
-    print("      \u2713 Done \u2014 {} facts loaded".format(len(documents)))
+    try:
+        idx, docs, emb = load_retriever()
+        components["idx"] = idx
+        components["docs"] = docs
+        components["emb"] = emb
+        print("      Done - {} facts loaded".format(len(docs)))
+    except Exception as e:
+        print("      FAILED: " + str(e))
+        failed.append("FAISS")
 
+    # 3 - LLM
     print("[3/4] Loading Language Model (TinyLlama Q4)...")
-    llm = load_llm()
-    print("      \u2713 Done ({:.1f}s)".format(time.time() - t0))
+    try:
+        components["llm"] = load_llm()
+        print("      Done ({:.1f}s)".format(time.time() - t0))
+    except Exception as e:
+        print("      FAILED: " + str(e))
+        failed.append("LLM")
 
-    print("[4/4] Loading Voice Output (pyttsx3)...")
-    tts_engine = load_tts()
-    print("      \u2713 Done")
+    # 4 - TTS
+    print("[4/4] Loading Voice System...")
+    try:
+        components["tts"] = load_tts()
+    except Exception as e:
+        print("      FAILED: " + str(e))
+        failed.append("TTS")
+
+    if failed:
+        print("\nFailed components: " + ", ".join(failed))
+        if "LLM" in failed:
+            print("Critical: LLM not loaded. Place gojan_ai_q4.gguf in models/gguf/")
+            sys.exit(1)
 
     total = time.time() - t0
-    print("\n\u2705 All systems ready! Total startup: {:.1f}s".format(total))
+    print()
+    print("-" * 58)
+    print("System ready! Startup: {:.1f}s".format(total))
+    print("-" * 58)
 
-    return stt_model, index, documents, embed_model, llm, tts_engine
+    return components
 
 
-# ---------------------------------------------------------------------------
-# Main Interactive Loop (FIX 2 — Updated Wake Word Loop)
-# ---------------------------------------------------------------------------
+# =====================================================================
+# Main Loop
+# =====================================================================
 def main():
-    # FIX 3 — Debug mode check
+    # Debug mode check
     if "--debug" in sys.argv:
         run_debug()
 
-    try:
-        stt_model, index, documents, embed_model, llm, tts_engine = boot()
-    except FileNotFoundError as e:
-        print("\n\u274c " + str(e))
-        sys.exit(1)
-
+    components = boot()
     memory = ConversationMemory()
-    state = ConversationState()
 
+    # Greeting
     greeting = get_greeting()
-    intro = greeting + " I am the Gojan College AI Assistant. English, Tamil, or Tanglish la pesalaam. Say Hey Gojan!"
-    speak(tts_engine, intro)
+    speak(components["tts"], greeting, "english")
 
-    print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...")
-    print("   (also works: 'Gojan', 'Anna', 'Hi Gojan', Tamil: '\u0b95\u0bcb\u0b9c\u0ba9\u0bcd')\n")
+    print("\n  Say 'Hey Gojan' to wake me up")
+    print("  Alternatives: 'Gojan' | 'Anna' | 'Hey Gojan'")
+    print("  Languages: English | Tamil | Tanglish")
+    print("  Say 'bye' to exit\n")
+    print("=" * 58 + "\n")
+
+    from scipy.io import wavfile as wf
+
+    miss_count = 0
 
     while True:
         try:
-            # === WAKE WORD DETECTION ===
-            from scipy.io import wavfile as wf
-
+            # ── Wake word phase ──────────────────────────
             audio = record_audio(duration=3)
 
-            # Skip silence
             if not is_speech(audio):
                 continue
 
-            # Transcribe wake word attempt
+            # Save to temp WAV for Whisper
             tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
             tmp_path = tmp.name
             tmp.close()
             audio_int16 = (audio * 32767).astype(np.int16)
             wf.write(tmp_path, SAMPLE_RATE, audio_int16)
+
             try:
-                result = transcribe(stt_model, tmp_path)
+                result = transcribe(components["stt"], tmp_path)
             finally:
-                os.unlink(tmp_path)
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
-            text = result["text"] if isinstance(result, dict) else result
+            heard = result["text"].strip() if result else ""
+            print("   heard: '{}'          ".format(heard), end="\r")
 
-            # Print what was heard for debugging (overwrites same line)
-            print(f"   heard: '{text.strip()}'", end="\r")
-
-            # Check wake word with robust detection
-            if not detect_wake_word(text):
+            if not detect_wake_word(heard):
+                miss_count += 1
+                if miss_count % 5 == 0:
+                    print("\n  Tip: Try saying 'Gojan' or 'Anna'          ")
                 continue
 
-            # === WAKE WORD DETECTED ===
-            print(f"\n\u2713 Wake word detected! ({text.strip()})")
+            # ── Wake confirmed ───────────────────────────
+            miss_count = 0
+            print("\n>> Activated! ('{}')".format(heard))
             play_beep()
 
-            # Now listen for the actual question
-            print("\U0001f3a4 Listening for your question... (7 seconds)")
-            question_result = listen_and_transcribe(stt_model)
+            # ── Question phase ───────────────────────────
+            print("   Listening for your question... (7 seconds)")
+            question_result = listen_and_transcribe(components["stt"])
 
             if question_result is None:
-                speak(tts_engine, "I didn't catch that. Say Hey Gojan to try again.")
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+                speak(components["tts"],
+                      "I didn't catch that. Say Hey Gojan to try again.",
+                      "english")
+                print("\n  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            question_text = question_result["text"]
-            detected_lang = question_result["language"]
+            q_text = question_result["text"]
+            f_lang = question_result["language"]
 
-            if len(question_text.strip()) < 3:
-                if detected_lang == "tanglish":
-                    speak(tts_engine, "Kekala? Meeendum sollunga.")
-                else:
-                    speak(tts_engine, "Please ask your question.")
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+            if len(q_text.strip()) < 3:
+                speak(components["tts"],
+                      "Please ask your question clearly.",
+                      "english")
+                print("\n  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            print(f"\n\u2753 [{detected_lang.upper()}] You: {question_text}")
+            print("\n  [{}] You: {}".format(f_lang.upper(), q_text))
 
-            # === INTENT DETECTION ===
-            if _any_match(question_text, FAREWELL_WORDS):
-                speak(tts_engine, "Bye! Gojan-la serthukkuven. Vanakkam!")
+            # ── Intent detection ─────────────────────────
+            intent = detect_intent(q_text)
+
+            if intent == "farewell":
+                farewell = {
+                    "english":  "Goodbye! Have a great day!",
+                    "tanglish": "Bye! Nalla irrunga!",
+                    "tamil":    "Goodbye! Nandri!",
+                }.get(f_lang, "Goodbye!")
+                speak(components["tts"], farewell, f_lang)
                 memory.clear()
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+                print("\n" + "-" * 58 + "\n")
+                print("  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            if _any_match(question_text, REPEAT_WORDS):
+            if intent == "repeat":
                 if memory.last_answer:
-                    speak(tts_engine, memory.last_answer)
+                    print("  Repeating last answer...")
+                    speak(components["tts"], memory.last_answer, f_lang)
                 else:
-                    speak(tts_engine, "Nothing to repeat.")
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+                    speak(components["tts"],
+                          "Nothing to repeat yet.", "english")
+                print("\n  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            if _any_match(question_text, RESET_WORDS):
+            if intent == "reset":
                 memory.clear()
-                speak(tts_engine, "Ok! Fresh start. Enna kekanum?")
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+                speak(components["tts"],
+                      "Starting fresh! Ask me anything about Gojan college.",
+                      "english")
+                print("\n  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            if _any_match(question_text, THANKS_WORDS):
-                speak(tts_engine, "You're welcome! Vera enna help venum?")
-                print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+            if intent == "thanks":
+                speak(components["tts"],
+                      "You're welcome! Vera enna help venum?",
+                      f_lang)
+                print("\n  Say 'Hey Gojan' to wake me up...\n")
                 continue
 
-            # === PROCESS QUESTION ===
-            print("\U0001f50d Searching knowledge base...")
+            # ── RAG Retrieval ────────────────────────────
+            print("  Searching knowledge base...")
+            try:
+                chunks = retrieve(
+                    q_text,
+                    components["idx"],
+                    components["docs"],
+                    components["emb"],
+                    top_k=4,
+                )
+                context = format_context(chunks)
+            except Exception as e:
+                print("  Retrieval error: " + str(e))
+                context = ""
 
-            chunks = retrieve(question_text, index, documents, embed_model, top_k=4)
-            context = format_context(chunks)
+            # ── Generate answer ──────────────────────────
+            print("  Generating answer...")
             history = memory.get_context_window()
 
-            print("\U0001f916 Generating answer...")
+            if intent == "more" and memory.last_topic:
+                q_text = "Tell me more about " + memory.last_topic
+
             answer = generate_answer(
-                llm, question_text, context, detected_lang, history
+                components["llm"],
+                q_text,
+                context,
+                f_lang,
+                history,
             )
 
-            # Store in memory
-            memory.add_turn("user", question_text, detected_lang)
-            memory.add_turn("assistant", answer, detected_lang)
+            # ── Output ──────────────────────────────────
+            print("\n  [{}] Gojan AI: {}".format(f_lang.upper(), answer))
+            speak(components["tts"], answer, f_lang)
+
+            # ── Memory update ───────────────────────────
+            memory.add_turn("user", q_text, f_lang)
+            memory.add_turn("assistant", answer, f_lang)
             memory.last_answer = answer
 
-            print(f"\U0001f4ac [{detected_lang.upper()}] Gojan AI: {answer}")
-            speak(tts_engine, answer)
-            print("\u2500" * 55)
-            print("\n\U0001f3a4 Say 'Hey Gojan' to wake me up...\n")
+            for topic in ["placement", "hostel", "fees", "course",
+                          "department", "admission", "facility",
+                          "club", "transport", "library"]:
+                if topic in q_text.lower():
+                    memory.last_topic = topic
+                    break
+
+            print("\n" + "-" * 58)
+            print("  Say 'Hey Gojan' to wake me up...\n")
 
         except KeyboardInterrupt:
-            speak(tts_engine, "Goodbye! Thank you for using Gojan AI Assistant.")
-            print("\n\U0001f44b Assistant stopped.")
+            print("\n\n" + "-" * 58)
+            speak(components["tts"],
+                  "Goodbye! Thank you for using Gojan AI Assistant.",
+                  "english")
+            print("  Assistant stopped.\n")
             sys.exit(0)
+
         except Exception as e:
-            print(f"\n\u26a0 Error: {e} \u2014 resuming...")
+            print("\n  Error: {} - resuming...".format(e))
+            time.sleep(1)
             continue
 
 
