@@ -1,8 +1,8 @@
 """
-Phase B - LLM Inference Service (CPU Only) v2.1
-=================================================
-TinyLlama Q4 GGUF via ctransformers.
-Enhanced with GOJAN_FACTS, topic detection, and smart fallback.
+Phase B - LLM Inference Service (CPU Only) v3.0 (Pure RAG with Zephyr-7B)
+==========================================================================
+Uses Zephyr-7B-beta Q4_K_M via ctransformers.
+Strict FAISS RAG architecture - no hardcoded facts.
 """
 
 import os
@@ -13,61 +13,34 @@ from ctransformers import AutoModelForCausalLM
 # Configuration
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "gguf", "gojan_ai_q4.gguf")
 
-# TinyLlama chat format tokens — built via concat to stay safe in all tooling
-EOS = "<" + "/s>"
-TAG_SYS = "<" + "|system|>"
-TAG_USR = "<" + "|user|>"
-TAG_AST = "<" + "|assistant|>"
+# Pointing to the new "Best of Best" Zephyr model
+MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "gguf", "zephyr-7b-beta.Q4_K_M.gguf")
 
-_STRIP_TAGS = [TAG_SYS, TAG_USR, TAG_AST, EOS,
-               "[INST]", "[/INST]", "System:", "Assistant:", "User:"]
+# Zephyr tokens
+TAG_SYS = "<|system|>"
+TAG_USR = "<|user|>"
+TAG_AST = "<|assistant|>"
+EOS = "</s>"
 
-# ---------------------------------------------------------------------------
-# Verified Gojan College Facts (source of truth)
-# ---------------------------------------------------------------------------
-GOJAN_FACTS = {
-    "location": "80 Feet Road, Edapalayam, Redhills, Chennai - 600 052",
-    "phone": "+91 7010723984 / +91 7010723985",
-    "email": "gsbt@gojaneducation.tech",
-    "tnea_code": "1123",
-    "established": "2005",
-    "campus": "80 acres at Redhills, Chennai",
-    "affiliation": "Anna University, Chennai",
-    "accreditation": "NAAC Accredited, AICTE Recognized",
-    "ug_courses": [
-        "B.E. Aeronautical Engineering",
-        "B.E. Computer Science and Engineering",
-        "B.E. Electronics and Communication Engineering",
-        "B.E. Artificial Intelligence and Machine Learning",
-        "B.E. Cyber Security Engineering",
-        "B.E. Medical Electronics Engineering",
-        "B.E. Mechanical and Automation Engineering",
-        "B.Tech. Information Technology",
-    ],
-    "pg_courses": ["MBA - Master of Business Administration"],
-}
+# Tags to strip completely from output
+_STRIP_TAGS = [TAG_SYS, TAG_USR, TAG_AST, EOS]
 
 # ---------------------------------------------------------------------------
-# System prompt
+# Strict System Prompt
 # ---------------------------------------------------------------------------
 SYSTEM_PROMPT = (
-    "You are Gojan AI, a friendly voice assistant for Gojan School of "
-    "Business and Technology, Chennai.\n\n"
-    "STRICT RULES:\n"
-    "1. Answer ONLY about Gojan college topics\n"
-    "2. Use ONLY the context provided - never make up facts\n"
-    "3. If context has no answer say: "
-    "'I don't have that info. Contact: +91 7010723984'\n"
-    "4. Keep answers SHORT - maximum 2-3 sentences for voice\n"
-    "5. Match the language of the user EXACTLY:\n"
-    "   - English question -> English answer\n"
-    "   - Tanglish question -> Tanglish answer\n"
-    "   - Tamil question -> Tamil answer\n"
-    "6. Be warm and friendly like a helpful senior student\n"
-    "7. Never repeat the question back\n"
-    "8. Never say 'Based on the context' - just answer directly"
+    "You are Gojan AI, a knowledgeable and friendly voice assistant for Gojan "
+    "School of Business and Technology (GSBT), Chennai.\n\n"
+    "CRITICAL RULES:\n"
+    "1. You MUST answer the user's question using ONLY the provided CONTEXT.\n"
+    "2. If the CONTEXT does not contain the answer, say EXACTLY: "
+    "'I do not have that information. Please contact the college directly at "
+    "+91 7010723984.' DO NOT GUESS.\n"
+    "3. Keep your answers brief, maximum 2 to 3 sentences (it will be spoken aloud).\n"
+    "4. Reply EXACTLY in the language requested below.\n"
+    "5. Be helpful and warm, like a senior student.\n"
+    "6. Do not say 'According to the context' - simply state the facts directly."
 )
 
 
@@ -75,97 +48,64 @@ SYSTEM_PROMPT = (
 # Model loading
 # ---------------------------------------------------------------------------
 def load_model():
-    """Load the TinyLlama GGUF model for CPU inference."""
+    """Load the Zephyr-7B GGUF model for CPU inference via ctransformers."""
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(
-            "GGUF model not found: " + MODEL_PATH + "\n"
-            "Download gojan_ai_q4.gguf and place in models/gguf/"
+            "Zephyr-7B model not found: " + MODEL_PATH + "\n"
+            "Please wait for the download to complete."
         )
-    print("  Loading LLM: " + os.path.basename(MODEL_PATH) + "...")
+    print("  Loading LLM: " + os.path.basename(MODEL_PATH) + " (Zephyr-7B)...")
+    
+    # model_type="mistral" works perfectly for Zephyr
     llm = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
-        model_type="llama",
-        context_length=1024,
+        model_type="mistral",
+        context_length=2048,
         threads=4,
     )
     return llm
 
 
 # ---------------------------------------------------------------------------
-# Topic detection — injects verified facts into context
-# ---------------------------------------------------------------------------
-def detect_topic(question):
-    """Detect topic keywords and return matching verified facts."""
-    q = question.lower()
-    facts = []
-
-    if any(w in q for w in ["location", "where", "address", "place",
-                             "enge", "iruku"]):
-        facts.append("Location: " + GOJAN_FACTS["location"])
-
-    if any(w in q for w in ["phone", "contact", "number", "call",
-                             "reach", "pesanum"]):
-        facts.append("Phone: " + GOJAN_FACTS["phone"])
-        facts.append("Email: " + GOJAN_FACTS["email"])
-
-    if any(w in q for w in ["course", "courses", "department", "branch",
-                             "programme", "enna"]):
-        ug = ", ".join(GOJAN_FACTS["ug_courses"])
-        facts.append("UG Courses: " + ug)
-        facts.append("PG Course: " + GOJAN_FACTS["pg_courses"][0])
-
-    if any(w in q for w in ["tnea", "code", "admission", "apply",
-                             "counselling", "serkkai"]):
-        facts.append("TNEA Code: " + GOJAN_FACTS["tnea_code"])
-
-    if any(w in q for w in ["established", "founded", "started", "year",
-                             "when", "aarambichu"]):
-        facts.append("Established: " + GOJAN_FACTS["established"])
-        facts.append("Campus: " + GOJAN_FACTS["campus"])
-
-    if any(w in q for w in ["naac", "aicte", "affiliated", "approved",
-                             "accredited"]):
-        facts.append("Status: " + GOJAN_FACTS["accreditation"])
-        facts.append("Affiliated to: " + GOJAN_FACTS["affiliation"])
-
-    return "\n".join(facts)
-
-
-# ---------------------------------------------------------------------------
-# Prompt builder
+# Prompt builder (Zephyr Chat Template)
 # ---------------------------------------------------------------------------
 def _build_prompt(question, context, detected_language, conversation_history):
-    """Build TinyLlama chat-format prompt with verified facts."""
+    """Build the Zephyr-compatible chat prompt strictly using RAG context."""
 
-    # Language instruction
+    # Language generation instruction
     lang_map = {
         "english":  "Respond in clear simple English.",
         "tanglish": ("Respond in Tanglish - mix Tamil words naturally with "
-                     "English. Example: 'Gojan la nalla courses iruku.'"),
+                     "English script. Example: 'Gojan la courses iruku.'"),
         "tamil":    "Respond fully in Tamil script.",
     }
     lang_instruction = lang_map.get(detected_language, lang_map["english"])
 
-    # Inject verified facts for this topic
-    topic_facts = detect_topic(question)
-
-    parts = [TAG_SYS, "\n"]
-    parts.append(SYSTEM_PROMPT + "\n\n")
-    parts.append("LANGUAGE: " + lang_instruction + "\n\n")
-
-    if topic_facts:
-        parts.append("VERIFIED FACTS:\n" + topic_facts + "\n\n")
-
-    if context:
-        parts.append("CONTEXT:\n" + context + "\n\n")
-
+    # Zephyr `<|system|>\n...</s>\n<|user|>\n...</s>\n<|assistant|>` format
+    parts = []
+    
+    # --- System Message ---
+    sys_content = SYSTEM_PROMPT + "\n\nLANGUAGE RULE: " + lang_instruction
+    parts.append(TAG_SYS + "\n" + sys_content + EOS + "\n")
+    
+    # --- User Message (injecting Context) ---
+    user_content = ""
     if conversation_history:
-        parts.append("CONVERSATION HISTORY:\n" + conversation_history + "\n\n")
-
-    parts.append(EOS + "\n")
-    parts.append(TAG_USR + "\n")
-    parts.append(question + EOS + "\n")
+        user_content += "CONVERSATION HISTORY:\n" + conversation_history + "\n\n"
+        
+    user_content += "CONTEXT FROM KNOWLEDGE BASE:\n"
+    if context:
+        user_content += context + "\n\n"
+    else:
+        user_content += "(No context found)\n\n"
+        
+    user_content += "USER QUESTION: " + question
+    
+    parts.append(TAG_USR + "\n" + user_content + EOS + "\n")
+    
+    # --- Assistant Prompt ---
     parts.append(TAG_AST + "\n")
+    
     return "".join(parts)
 
 
@@ -173,41 +113,22 @@ def _build_prompt(question, context, detected_language, conversation_history):
 # Response cleaning
 # ---------------------------------------------------------------------------
 def clean_response(text, question=""):
-    """Clean raw LLM output: strip tags, remove question echo, limit length."""
+    """Clean raw LLM output for voice delivery."""
     if not text or len(text.strip()) < 3:
         return ""
 
     cleaned = text.strip()
 
-    # Remove prompt tags
+    # Remove strict prompt tags leaked
     for tag in _STRIP_TAGS:
         cleaned = cleaned.replace(tag, "")
     cleaned = cleaned.strip()
 
-    # Remove lines that just repeat the question
-    if question:
-        q_words = set(question.lower().split())
-        lines = cleaned.split("\n")
-        good_lines = []
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            line_words = set(line.lower().split())
-            overlap = len(q_words & line_words) / max(len(q_words), 1)
-            if overlap < 0.7:
-                good_lines.append(line)
-        cleaned = " ".join(good_lines)
-
     # Remove markdown artifacts
-    cleaned = re.sub(r"\*+", "", cleaned)
-    cleaned = re.sub(r"#+", "", cleaned)
-    cleaned = re.sub(r"`+", "", cleaned)
-
-    # Collapse whitespace
+    cleaned = re.sub(r"[*#_`]", "", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-    # Limit to 3 sentences
+    # Attempt to limit to 3 sentences conceptually for short TTS
     sentences = re.split(r"(?<=[.!?])\s+", cleaned)
     cleaned = " ".join(sentences[:3])
 
@@ -215,31 +136,22 @@ def clean_response(text, question=""):
 
 
 # ---------------------------------------------------------------------------
-# Fallback answers
+# Generic fallback
 # ---------------------------------------------------------------------------
-def get_fallback(question, language="english"):
-    """Smart fallback based on detected topic or generic contact info."""
-    topic_facts = detect_topic(question)
-
-    if topic_facts:
-        return topic_facts + "\nFor more info: " + GOJAN_FACTS["phone"]
-
+def get_fallback(language="english"):
+    """Generic offline fallback if the LLM completely fails or crashes."""
     fallbacks = {
         "english": (
-            "I don't have that specific information right now. "
-            "Please contact Gojan college directly at "
-            + GOJAN_FACTS["phone"] + " or email "
-            + GOJAN_FACTS["email"] + "."
+            "I seem to be having trouble processing that right now. "
+            "Please contact Gojan college directly at +91 7010723984."
         ),
         "tanglish": (
-            "Antha info ennakku theriyala. "
-            "Gojan college ku directly contact pannunga: "
-            + GOJAN_FACTS["phone"] + "."
+            "Ennakku process panna mudiyala. "
+            "Gojan college ku directly contact pannunga: +91 7010723984."
         ),
         "tamil": (
-            "அந்த தகவல் என்னிடம் இல்லை. "
-            "கோஜன் கல்லூரியை தொடர்பு கொள்ளுங்கள்: "
-            + GOJAN_FACTS["phone"] + "."
+            "என்னை தொடர்பு கொள்ள முடியவில்லை. "
+            "கோஜன் கல்லூரியை தொடர்பு கொள்ளுங்கள்: +91 7010723984."
         ),
     }
     return fallbacks.get(language, fallbacks["english"])
@@ -251,28 +163,29 @@ def get_fallback(question, language="english"):
 def generate_answer(llm, question, context,
                     detected_language="english",
                     conversation_history=""):
-    """Generate an accurate college answer using LLM + RAG + verified facts."""
+    """Pure LLM generative function driven entirely by RAG chunk context."""
     prompt = _build_prompt(question, context, detected_language,
                            conversation_history)
 
     try:
+        # Zephyr hyperparameters optimized for precise RAG reading
         response = llm(
             prompt,
-            max_new_tokens=200,
-            temperature=0.15,
-            top_p=0.85,
+            max_new_tokens=256,
+            temperature=0.1,  # extremely low to prevent hallucination
+            top_p=0.9,
+            repetition_penalty=1.1,
             stop=[EOS, TAG_USR, TAG_SYS],
         )
 
         raw_text = response.strip()
         answer = clean_response(raw_text, question)
 
-        # If answer too short or empty — use smart fallback
-        if len(answer.strip()) < 10:
-            answer = get_fallback(question, detected_language)
+        if len(answer.strip()) < 5:
+            return get_fallback(detected_language)
 
         return answer
 
     except Exception as e:
         print("      LLM error: " + str(e))
-        return get_fallback(question, detected_language)
+        return get_fallback(detected_language)
