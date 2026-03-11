@@ -1,0 +1,26 @@
+Loading Zephyr LLM...
+Q: Where is Gojan college located?
+A: Gojan College is located at 80 Feet Road, Edapalayam, Redhills, Chennai - 600 052.
+----------------------------------------
+Q: Gojan la enna courses iruku?
+A: Yes, Gojan School of Business and Technology offers enrollment in the following courses: B.E. Computer Science, Mechanical Engineering, and Artificial Intelligence - Machine Learning (AI-ML).
+----------------------------------------
+Q: What is the library timing?
+A: I do not have that information. Please contact Gojan college directly at +91 7010723984.
+----------------------------------------
+
+ERROR CRASHED:
+Traceback (most recent call last):
+  File "C:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\test_llm.py", line 5, in <module>
+    from phase_b_local.services.llm import load_model, generate_answer
+  File "c:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\phase_b_local\services\llm.py", line 11, in <module>
+    from ctransformers import AutoModelForCausalLM
+ModuleNotFoundError: No module named 'ctransformers'
+
+ERROR CRASHED:
+Traceback (most recent call last):
+  File "C:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\test_llm.py", line 5, in <module>
+    from phase_b_local.services.llm import load_model, generate_answer
+  File "c:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\phase_b_local\services\llm.py", line 11, in <module>
+    from ctransformers import AutoModelForCausalLM
+ModuleNotFoundError: No module named 'ctransformers'
