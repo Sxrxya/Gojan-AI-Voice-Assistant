@@ -113,6 +113,7 @@ EXACT_WAKE_WORDS = [
     "okay gojan", "ok gojan", "gojan ai", "ko jan", "gojon",
     "gojhan", "hey goes in", "goes in", "hey jen", "jen",
     "hey golden", "golden", "hey gorgon", "gorgon",
+    "gaojan", "hey gaojan", "gaujan", "hey gaujan", "bhojan",
 ]
 
 
@@ -131,14 +132,16 @@ def detect_wake_word(text):
     # Strategy 2 - Fuzzy syllable matching
     words = text_clean.split()
     for i, word in enumerate(words):
-        if word.startswith("goj") or \
+        if word.startswith("goj") or word.startswith("gaoj") or word.startswith("gow") or word.startswith("gau") or \
            (word.startswith("go") and "j" in word and len(word) >= 4) or \
+           (word.startswith("ga") and "j" in word and len(word) >= 4) or \
            (word.startswith("ko") and "j" in word and len(word) >= 4):
             return True
         if i < len(words) - 1:
             bigram = word + " " + words[i + 1]
             if bigram in ["go jan", "go john", "go jon", "go jean",
-                          "go chan", "hey jan", "hey john"]:
+                          "go chan", "hey jan", "hey john",
+                          "gao jan", "gow jan", "gou jan"]:
                 return True
 
     # Strategy 3 - Character similarity (unique chars, 80%)
@@ -186,6 +189,7 @@ def run_debug():
         ("okay gojan listen", True), ("gojen", True),
         ("gojhan", True), ("Anna tell me", True),
         ("hey goes in", True), ("hey jen", True),
+        ("hey gaojan", True), ("gao jan", True), ("gaujan", True),
         ("hello how are you", False), ("what is the time", False),
         ("random sentence here", False), ("good morning", False),
         ("thank you very much", False),
