@@ -67,9 +67,14 @@ def _transcribe_offline(audio_data: sr.AudioData):
     audio_file = io.BytesIO(wav_bytes)
 
     try:
+        # Give Whisper a bigger hint of words to expect so it auto-corrects mispronunciations
+        # Note: We cannot pass "all scraped data" here because Whisper has a maximum 200-word limit for hints.
+        domain_hint = "Gojan School of Business and Technology, Anna University. TNEA code 1123. Courses: CSE, Computer Science, ECE, Electronics, AI, Artificial Intelligence, ML, Machine Learning, IT, Mechanical, Aeronautical. Questions about hostel, fees, admission process, placement records, salary packages, transport, bus routes, library facilities, departments, principal, address, redhills, chennai."
+        
         segments, _ = _whisper_model.transcribe(
             audio_file, beam_size=3, temperature=0.0,
-            condition_on_previous_text=False
+            condition_on_previous_text=False,
+            initial_prompt=domain_hint
         )
         text = " ".join(s.text for s in segments).strip()
     except Exception as e:
