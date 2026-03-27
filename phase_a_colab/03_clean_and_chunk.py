@@ -23,9 +23,9 @@ EXTERNAL_DIR = os.path.join(PROJECT_ROOT, "data", "raw", "external")
 CHUNKS_DIR = os.path.join(PROJECT_ROOT, "data", "chunks")
 SEED_FACTS_PATH = os.path.join(PROJECT_ROOT, "data", "seed_facts.txt")
 
-CHUNK_TARGET_MIN = 120  # words
-CHUNK_TARGET_MAX = 180  # words
-CHUNK_OVERLAP = 15      # words
+CHUNK_TARGET_MIN = 100  # words (was 120 — more granular chunks)
+CHUNK_TARGET_MAX = 200  # words (was 180 — allow slightly larger)
+CHUNK_OVERLAP = 30      # words (was 15 — better context preservation)
 
 # Lines to remove (navigation / boilerplate)
 REMOVE_PATTERNS = [

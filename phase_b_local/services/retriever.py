@@ -46,14 +46,18 @@ def load_retriever():
     return index, documents, embed_model
 
 
-def retrieve(query, index, documents, embed_model, top_k=6):
-    """Retrieve top-k relevant document chunks for a query."""
+def retrieve(query, index, documents, embed_model, top_k=6, max_distance=1.5):
+    """Retrieve top-k relevant document chunks for a query.
+    
+    Filters out chunks with FAISS L2 distance > max_distance
+    to prevent irrelevant results from reaching the LLM.
+    """
     query_vec = embed_model.encode([query]).astype("float32")
     distances, indices = index.search(query_vec, top_k)
 
     results = []
-    for idx in indices[0]:
-        if 0 <= idx < len(documents):
+    for dist, idx in zip(distances[0], indices[0]):
+        if 0 <= idx < len(documents) and dist < max_distance:
             results.append(documents[idx])
     return results
 

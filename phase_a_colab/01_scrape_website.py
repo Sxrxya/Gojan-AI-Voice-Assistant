@@ -197,33 +197,42 @@ def main():
     print()
 
     for i, url in enumerate(URLS, 1):
-        try:
-            result = scrape_page(url)
+        for attempt in range(3):
+            try:
+                result = scrape_page(url)
+                
+                # Save text file
+                txt_path = os.path.join(OUTPUT_DIR, f"{result['slug']}.txt")
+                with open(txt_path, "w", encoding="utf-8") as f:
+                    f.write(result["text"])
 
-            # Save text file
-            txt_path = os.path.join(OUTPUT_DIR, f"{result['slug']}.txt")
-            with open(txt_path, "w", encoding="utf-8") as f:
-                f.write(result["text"])
+                index_data.append({
+                    "url": result["url"],
+                    "slug": result["slug"],
+                    "word_count": result["word_count"],
+                    "status": result["status"],
+                })
 
-            index_data.append({
-                "url": result["url"],
-                "slug": result["slug"],
-                "word_count": result["word_count"],
-                "status": result["status"],
-            })
+                total_words += result["word_count"]
+                success_count += 1
+                if attempt == 0:
+                    print(f"  ✓ [{i}/{len(URLS)}] Scraped: {url} → {result['word_count']} words")
+                else:
+                    print(f"  ✓ [{i}/{len(URLS)}] Scraped (on retry {attempt+1}): {url} → {result['word_count']} words")
+                break # Success, break retry loop
 
-            total_words += result["word_count"]
-            success_count += 1
-            print(f"  ✓ [{i}/{len(URLS)}] Scraped: {url} → {result['word_count']} words")
-
-        except Exception as e:
-            print(f"  ✗ [{i}/{len(URLS)}] Failed: {url} → {e}")
-            index_data.append({
-                "url": url,
-                "slug": url_to_slug(url),
-                "word_count": 0,
-                "status": f"error: {e}",
-            })
+            except Exception as e:
+                if attempt < 2:
+                    print(f"  ↻ [{i}/{len(URLS)}] Retry {attempt+2}/3 for {url} (Error: {e})")
+                    time.sleep(DELAY * (attempt + 2))
+                else:
+                    print(f"  ✗ [{i}/{len(URLS)}] Failed completely: {url} → {e}")
+                    index_data.append({
+                        "url": url,
+                        "slug": url_to_slug(url),
+                        "word_count": 0,
+                        "status": f"error: {e}",
+                    })
 
         # Polite delay between requests
         if i < len(URLS):
