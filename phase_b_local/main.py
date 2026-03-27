@@ -213,9 +213,7 @@ def main():
     components = boot()
     memory = ConversationMemory()
 
-    # NO spoken greeting — just print it.
-    # Speaking "Hey Gojan" aloud causes the mic to hear it and
-    # instantly wake up from its own echo!
+    # Spoken greeting on boot (avoiding the wake word 'Gojan' to prevent echo loops)
     print()
     print("  *** I am Gojan AI Assistant ***")
     print("  Say 'Hey Gojan' to wake me up (or any similar phrase)")
@@ -224,6 +222,10 @@ def main():
     print()
     print("=" * 58)
     print()
+    
+    speak(components["tts"], "Welcome to Gojan A. I. Voice Assistant. I am ready.", "english")
+    time.sleep(2) # Let echo fully die
+    
     print("  [LISTENING for wake word...]")
 
     while True:
@@ -281,7 +283,7 @@ def main():
             intent = detect_intent(q_text)
 
             if intent == "farewell":
-                speak(components["tts"], "Goodbye! Have a great day!", f_lang)
+                speak(components["tts"], "Thank you, Goodbye! Have a great day!", f_lang)
                 time.sleep(3)
                 memory.clear()
                 print("\n  [LISTENING for wake word...]")
@@ -364,6 +366,7 @@ def main():
             print("\n\n" + "-" * 58)
             print("  Assistant stopped. Goodbye!")
             print("-" * 58)
+            speak(components["tts"], "Thank you, shutting down.", "english")
             sys.exit(0)
 
         except Exception as e:
