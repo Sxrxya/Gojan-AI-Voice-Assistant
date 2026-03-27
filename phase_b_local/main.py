@@ -157,7 +157,7 @@ def boot():
     print()
     print("=" * 58)
     print("  GOJAN SCHOOL OF BUSINESS AND TECHNOLOGY")
-    print("  AI VOICE ASSISTANT v3.2 (Bulletproof Wake Word)")
+    print("  AI VOICE ASSISTANT v4.0 (100% Offline / Local Whisper)")
     print("  English | Tamil | Tanglish")
     print("=" * 58)
     print()

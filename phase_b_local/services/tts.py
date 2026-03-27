@@ -1,57 +1,22 @@
 """
-Phase B - Text-to-Speech Service (Hybrid: pyttsx3 + gTTS)
-==========================================================
-Primary:  pyttsx3 (offline, zero RAM, instant)
-Bonus:    gTTS with tld="co.in" (Indian English accent, needs internet)
-Tamil:    gTTS lang="ta" when online, screen-only when offline
-Playback: pygame.mixer for MP3 files (gTTS path)
+Phase B - Text-to-Speech Service (100% Offline)
+================================================
+Exclusively uses pyttsx3 (Windows SAPI5 voice engine).
+Zero internet required. No gTTS dependencies.
 """
 
-import os
 import re
-import tempfile
+import pyttsx3
 import numpy as np
-
-
-# ── Internet check ───────────────────────────────────────────────────────────
-
-def _check_internet():
-    """Quick check if internet is available (3s timeout)."""
-    import socket
-    try:
-        socket.setdefaulttimeout(3)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(("8.8.8.8", 53))
-        s.close()
-        return True
-    except Exception:
-        return False
 
 
 # ── Load ─────────────────────────────────────────────────────────────────────
 
 def load_tts():
     """
-    Returns a dict: {mode: "gtts"|"pyttsx3", engine: <object>}
-    Tries gTTS first (better voice), falls back to pyttsx3.
+    Initialize pyttsx3 and select an appropriate Windows voice.
     """
-    info = {"mode": None, "engine": None}
-
-    # Try gTTS
-    try:
-        from gtts import gTTS  # noqa: F401
-        if _check_internet():
-            info["mode"] = "gtts"
-            info["engine"] = gTTS
-            print("      TTS: Google TTS (Indian voice, online)")
-            return info
-        else:
-            print("      No internet - falling back to pyttsx3")
-    except ImportError:
-        print("      gTTS not installed - falling back to pyttsx3")
-
-    # Fallback: pyttsx3
-    import pyttsx3
+    print("      TTS: pyttsx3 (100% offline Windows voice)")
     engine = pyttsx3.init()
     engine.setProperty("rate", 148)
     engine.setProperty("volume", 1.0)
@@ -63,109 +28,36 @@ def load_tts():
             engine.setProperty("voice", v.id)
             break
 
-    info["mode"] = "pyttsx3"
-    info["engine"] = engine
-    print("      TTS: pyttsx3 (offline backup)")
-    return info
-
-
-# ── Clean text for voice ─────────────────────────────────────────────────────
-
-def _clean_for_voice(text):
-    """Strip markdown, limit to 3 sentences."""
-    if not text:
-        return ""
-    clean = text.strip()
-    clean = re.sub(r"[*#_`]", "", clean)
-
-    # Split into sentences and take max 3
-    parts = re.split(r"(?<=[.!?])\s+", clean)
-    parts = [p.strip() for p in parts if p.strip()]
-    return " ".join(parts[:3])
-
-
-# ── Play MP3 via pygame ──────────────────────────────────────────────────────
-
-def _play_mp3(filepath):
-    """Play an MP3 file using pygame.mixer. Initialises and quits cleanly."""
-    try:
-        import pygame
-        pygame.mixer.init()
-        pygame.mixer.music.load(filepath)
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
-        pygame.mixer.music.unload()
-        pygame.mixer.quit()
-    except Exception as e:
-        print(f"      Audio playback error: {e}")
+    return {"mode": "pyttsx3", "engine": engine}
 
 
 # ── Speak ────────────────────────────────────────────────────────────────────
 
 def speak(engine_info, text, language="english"):
     """
-    Speak text using the best available engine.
-
-    Parameters
-    ----------
-    engine_info : dict from load_tts()
-    text        : string to speak
-    language    : "english" | "tanglish" | "tamil"
+    Speak text using offline pyttsx3.
+    Strips markdown and limits length to prevent monotone rambling.
     """
-    clean = _clean_for_voice(text)
-    if not clean:
+    if not text:
         return
+        
+    # Clean markdown
+    clean = text.strip()
+    clean = re.sub(r"[*#_`]", "", clean)
 
-    mode = engine_info["mode"]
+    # Split into sentences and take max 3
+    parts = re.split(r"(?<=[.!?])\s+", clean)
+    parts = [p.strip() for p in parts if p.strip()]
+    clean = " ".join(parts[:3])
 
-    # ── gTTS path ────────────────────────────────────────────────────────
-    if mode == "gtts":
-        try:
-            from gtts import gTTS
-
-            if language == "tamil":
-                lang_code, tld = "ta", "com"
-            else:
-                # English and Tanglish both use Indian English accent
-                lang_code, tld = "en", "co.in"
-
-            tts_obj = gTTS(text=clean, lang=lang_code, tld=tld, slow=False)
-
-            tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-            tmp_path = tmp.name
-            tmp.close()
-
-            tts_obj.save(tmp_path)
-            _play_mp3(tmp_path)
-
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
-            return
-
-        except Exception as e:
-            print(f"      gTTS error: {e} - using pyttsx3 fallback")
-            # Fall through to pyttsx3
-
-    # ── pyttsx3 path ─────────────────────────────────────────────────────
-    try:
-        engine = engine_info["engine"]
-        if engine is None:
-            import pyttsx3
-            engine = pyttsx3.init()
-            engine.setProperty("rate", 148)
-            engine_info["engine"] = engine
-
-        if language == "tamil":
-            engine.say("Tamil answer shown on screen. Please read the terminal.")
-        else:
-            engine.say(clean)
-        engine.runAndWait()
-
-    except Exception as e:
-        print(f"      TTS error: {e}")
+    engine = engine_info["engine"]
+    
+    if language == "tamil":
+        engine.say("Tamil answer shown on screen. Please read the terminal.")
+    else:
+        engine.say(clean)
+        
+    engine.runAndWait()
 
 
 # ── Beep ─────────────────────────────────────────────────────────────────────
