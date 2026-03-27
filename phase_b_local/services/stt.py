@@ -1,72 +1,39 @@
 """
-stt.py — Production-grade Speech-to-Text & Wake Word Service
-=============================================================
-Architecture:
-  1. Continuous background mic stream (PyAudio)
-  2. OpenWakeWord ("hey jarvis" model, closest to "Hey Gojan")
-  3. WebRTC-style Python RMS VAD captures live speech frames after wake
-  4. Google STT (en-IN) → faster-whisper offline fallback
-  5. Hard mic mute while TTS is playing
+stt.py — Speech-to-Text Service (Simple & Reliable)
+=====================================================
+Uses Google Speech Recognition API as primary (perfect accuracy).
+Falls back to Whisper base for offline mode.
+No complex dependencies — just works.
 """
 
 import io
-import logging
-import threading
-import time
-import wave
-from dataclasses import dataclass, field
-from typing import Optional
 import os
+import re
+import tempfile
+import logging
+import wave
 
 import numpy as np
-import pyaudio
 
+# Google Speech Recognition (primary)
 try:
     import speech_recognition as sr
     _SR_AVAILABLE = True
 except ImportError:
     _SR_AVAILABLE = False
-    logging.warning("speech_recognition not installed — Google STT unavailable")
 
+# Whisper (offline fallback)
 try:
     from faster_whisper import WhisperModel
     _WHISPER_AVAILABLE = True
 except ImportError:
     _WHISPER_AVAILABLE = False
-    logging.warning("faster-whisper not installed — offline fallback unavailable")
-
-try:
-    from openwakeword.model import Model as OWWModel
-    _OWW_AVAILABLE = True
-except ImportError:
-    _OWW_AVAILABLE = False
-    logging.warning("openwakeword not installed — wake word detection unavailable")
 
 logger = logging.getLogger(__name__)
 
-# -----------------------------------------------------------------------------
-RATE          = 16000
-CHANNELS      = 1
-FRAME_MS      = 30
-FRAME_SAMPLES = int(RATE * FRAME_MS / 1000)
-FRAME_BYTES   = FRAME_SAMPLES * 2
+SAMPLE_RATE = 16000
 
-RMS_THRESHOLD = 0.008
-SILENCE_FRAMES_END = 40
-MAX_UTTERANCE_FRAMES = 600
-OWW_THRESHOLD = 0.5
-WHISPER_MODEL_SIZE = "base"
-
-# TTS Mute Gate
-tts_playing = threading.Event()
-
-def mute_microphone():
-    tts_playing.set()
-
-def unmute_microphone():
-    tts_playing.clear()
-
-
+# Tanglish word list for language detection
 TANGLISH_WORDS = [
     "iruku", "illa", "sollu", "pathi", "enna", "evvalavu",
     "nalla", "konjam", "theriyum", "pannanum", "mattum",
@@ -77,16 +44,29 @@ TANGLISH_WORDS = [
     "poganum", "vanakkam", "nanri", "puthusha", "meeendum",
 ]
 
+_whisper_model = None
+
+
+def load_model():
+    """Load Whisper for offline fallback. Returns the model."""
+    global _whisper_model
+    if _WHISPER_AVAILABLE and _whisper_model is None:
+        print("  Loading Whisper 'base' (offline fallback)...")
+        _whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+    if _SR_AVAILABLE:
+        print("  Google Speech API: Ready")
+    return _whisper_model
+
+
 def detect_tanglish(text):
     if not text:
         return None
     words = text.lower().split()
     matches = sum(1 for w in words if w in TANGLISH_WORDS)
-    if matches >= 2:
-        return "tanglish"
-    return None
+    return "tanglish" if matches >= 2 else None
 
-def _detect_language(text, base_lang):
+
+def detect_language(text, base_lang="en"):
     tg = detect_tanglish(text)
     if tg:
         return "tanglish"
@@ -94,128 +74,118 @@ def _detect_language(text, base_lang):
         return "tamil"
     return "english"
 
-@dataclass
-class AudioChunk:
-    frames: list = field(default_factory=list)
-    sample_rate: int = RATE
 
-    def to_wav_bytes(self) -> bytes:
-        buf = io.BytesIO()
-        with wave.open(buf, "wb") as wf:
-            wf.setnchannels(CHANNELS)
-            wf.setsampwidth(2)
-            wf.setframerate(self.sample_rate)
-            wf.writeframes(b"".join(self.frames))
-        return buf.getvalue()
+def listen_for_wake_word(timeout=4):
+    """
+    Listen for the wake word using Google Speech Recognition.
+    Returns the transcribed text or None if nothing heard.
+    Uses dynamic listening — stops when you stop talking.
+    """
+    if not _SR_AVAILABLE:
+        return None
 
-class WakeWordDetector:
-    MODEL_NAME = "hey_jarvis"
+    r = sr.Recognizer()
+    try:
+        with sr.Microphone(sample_rate=SAMPLE_RATE) as source:
+            r.adjust_for_ambient_noise(source, duration=0.3)
+            # Removed artificial threshold floor to allow listening in quiet rooms
+            audio = r.listen(source, timeout=timeout, phrase_time_limit=3)
 
-    def __init__(self):
-        if not _OWW_AVAILABLE:
-            raise RuntimeError("openwakeword is not installed.")
-        logger.info(f"[WakeWord] Loading OWW model: {self.MODEL_NAME}")
-        self._model = OWWModel(
-            wakeword_models=[self.MODEL_NAME],
-            enable_speex_noise_suppression=True,
-            inference_framework="onnx"
-        )
+        text = r.recognize_google(audio, language="en-IN")
+        return text.strip()
+    except sr.WaitTimeoutError:
+        return None
+    except sr.UnknownValueError:
+        return None
+    except sr.RequestError:
+        # Internet down — try Whisper fallback
+        return _whisper_listen(timeout)
+    except Exception:
+        return None
 
-    def process_frame(self, pcm_bytes: bytes) -> bool:
-        audio_np = np.frombuffer(pcm_bytes, dtype=np.int16)
-        prediction = self._model.predict(audio_np)
-        score = prediction.get(self.MODEL_NAME, 0.0)
-        return score >= OWW_THRESHOLD
 
-class SpeechCapture:
-    def listen_for_utterance(self, stream: pyaudio.Stream) -> Optional[AudioChunk]:
-        frames = []
-        silent_frames = 0
-        speech_started = False
+def listen_for_question(timeout=8):
+    """
+    Listen for a full question using Google Speech Recognition.
+    Returns dict {text, language} or None.
+    Dynamically stops when user finishes speaking.
+    """
+    if not _SR_AVAILABLE:
+        return _whisper_question(timeout)
 
-        for _ in range(MAX_UTTERANCE_FRAMES):
-            if tts_playing.is_set():
-                return None
+    r = sr.Recognizer()
+    try:
+        with sr.Microphone(sample_rate=SAMPLE_RATE) as source:
+            r.adjust_for_ambient_noise(source, duration=0.3)
+            # Removed artificial threshold floor to allow listening in quiet rooms
+            audio = r.listen(source, timeout=timeout, phrase_time_limit=15)
 
-            raw = stream.read(FRAME_SAMPLES, exception_on_overflow=False)
-            is_speech = self._is_speech(raw)
-
-            if is_speech:
-                silent_frames = 0
-                speech_started = True
-                frames.append(raw)
-            elif speech_started:
-                silent_frames += 1
-                frames.append(raw)
-                if silent_frames >= SILENCE_FRAMES_END:
-                    break
-
-        if not speech_started or len(frames) < 5:
+        text = r.recognize_google(audio, language="en-IN")
+        if not text or len(text.strip()) < 3:
             return None
 
-        return AudioChunk(frames=frames)
+        lang = detect_language(text, "en")
+        return {"text": text.strip(), "language": lang}
+    except sr.WaitTimeoutError:
+        return None
+    except sr.UnknownValueError:
+        return None
+    except sr.RequestError:
+        return _whisper_question(timeout)
+    except Exception:
+        return None
 
-    def _is_speech(self, frame_bytes: bytes) -> bool:
-        audio_np = np.frombuffer(frame_bytes, dtype=np.int16).astype(np.float32)
-        if audio_np.max() > 1.0:
-            audio_np = audio_np / 32768.0
-        rms = np.sqrt(np.mean(audio_np ** 2))
-        return rms > RMS_THRESHOLD
 
-class Transcriber:
-    def __init__(self):
-        self._recognizer = sr.Recognizer() if _SR_AVAILABLE else None
-        self._whisper: Optional["WhisperModel"] = None
-        if _WHISPER_AVAILABLE:
-            self._whisper = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+def _whisper_listen(timeout=4):
+    """Offline fallback for wake word using Whisper."""
+    global _whisper_model
+    if not _whisper_model:
+        return None
 
-    def transcribe(self, chunk: AudioChunk) -> str:
-        wav_bytes = chunk.to_wav_bytes()
+    import sounddevice as sd
+    from scipy.io import wavfile
 
-        if self._recognizer:
-            text = self._google_stt(wav_bytes)
-            if text:
-                return text
+    try:
+        audio = sd.rec(int(timeout * SAMPLE_RATE), samplerate=SAMPLE_RATE,
+                       channels=1, dtype="float32")
+        sd.wait()
+        audio = audio.flatten()
 
-        if self._whisper:
-            text = self._whisper_stt(wav_bytes)
-            if text:
-                return text
+        # Check if there's actual sound
+        rms = np.sqrt(np.mean(audio ** 2))
+        if rms < 0.008:
+            return None
 
-        return ""
+        tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        tmp_path = tmp.name
+        tmp.close()
+        audio_int16 = (audio * 32767).astype(np.int16)
+        wavfile.write(tmp_path, SAMPLE_RATE, audio_int16)
 
-    def _google_stt(self, wav_bytes: bytes) -> str:
         try:
-            audio_file = sr.AudioData(wav_bytes, RATE, 2)
-            text = self._recognizer.recognize_google(audio_file, language="en-IN")
-            return text.strip()
-        except Exception:
-            return ""
+            segments, _ = _whisper_model.transcribe(
+                tmp_path, beam_size=3, temperature=0.0,
+                condition_on_previous_text=False
+            )
+            text = " ".join(s.text for s in segments).strip()
+        finally:
+            os.unlink(tmp_path)
 
-    def _whisper_stt(self, wav_bytes: bytes) -> str:
-        try:
-            audio_buf = io.BytesIO(wav_bytes)
-            segments, _ = self._whisper.transcribe(audio_buf, language="en", beam_size=3, vad_filter=True)
-            return " ".join(seg.text for seg in segments).strip()
-        except:
-            return ""
+        # Filter known hallucinations
+        clean = text.lower().strip().rstrip(".!?,;:")
+        if clean in ["thank you", "thanks for watching", "all right", "you",
+                      "okay", "bye", "oh", "um", "ah", "hmm", "so"] or len(clean) < 3:
+            return None
 
-class MicrophoneStream:
-    def __init__(self):
-        self._pa: Optional[pyaudio.PyAudio] = None
-        self.stream: Optional[pyaudio.Stream] = None
+        return text
+    except Exception:
+        return None
 
-    def __enter__(self):
-        self._pa = pyaudio.PyAudio()
-        self.stream = self._pa.open(rate=RATE, channels=CHANNELS, format=pyaudio.paInt16, input=True, frames_per_buffer=FRAME_SAMPLES)
-        return self
 
-    def __exit__(self, *_):
-        if self.stream:
-            self.stream.stop_stream()
-            self.stream.close()
-        if self._pa:
-            self._pa.terminate()
-
-    def read_frame(self) -> bytes:
-        return self.stream.read(FRAME_SAMPLES, exception_on_overflow=False)
+def _whisper_question(timeout=8):
+    """Offline fallback for questions using Whisper."""
+    text = _whisper_listen(timeout)
+    if text and len(text.strip()) >= 3:
+        lang = detect_language(text, "en")
+        return {"text": text.strip(), "language": lang}
+    return None
