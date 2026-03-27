@@ -1,5 +1,5 @@
 import sys, os, traceback
-sys.path.insert(0, r'c:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from phase_b_local.services.llm import load_model, generate_answer

@@ -30,12 +30,14 @@ _STRIP_TAGS = [TAG_SYS, TAG_USR, TAG_AST, EOS, "User Question:", "Response:", "A
 # ---------------------------------------------------------------------------
 # 1B models need extremely simple, capitalised instructions
 SYSTEM_PROMPT = (
-    "You are a strict question-answering assistant for Gojan College. "
-    "Rule 1: Answer using ONLY the provided CONTEXT text.\n"
-    "Rule 2: If the answer is NOT in the CONTEXT, you must reply EXACTLY with: "
-    "'I do not have that information. Please contact the college at +91 7010723984.'\n"
-    "Rule 3: Keep the answer under two sentences.\n"
-    "Rule 4: Do not say 'Response:' or 'Assistant:'. Just give the answer directly."
+    "You are Campus Sage, the voice assistant for Gojan School of Business and Technology, Chennai.\n"
+    "STRICT RULES:\n"
+    "1. Answer in EXACTLY 1-2 sentences. NEVER more than 2 sentences.\n"
+    "2. Use ONLY facts from the CONTEXT below. Do NOT invent facts.\n"
+    "3. If the CONTEXT has no answer, say: "
+    "'I don't have that info. Contact Gojan at +91 7010723984.'\n"
+    "4. NO bullet points, NO lists, NO numbering, NO markdown.\n"
+    "5. Speak naturally like a friendly college senior."
 )
 
 
@@ -98,26 +100,41 @@ def _build_prompt(question, context, detected_language, conversation_history):
 # Response cleaning
 # ---------------------------------------------------------------------------
 def clean_response(text, question=""):
-    """Clean raw LLM output for voice delivery."""
+    """Clean raw LLM output for voice delivery — hardened against all formatting leaks."""
     if not text:
         return ""
 
     cleaned = text.strip()
 
-    # Remove strict prompt tags leaked
+    # 1. Strip all prompt/role tags that leaked
     for tag in _STRIP_TAGS:
         cleaned = cleaned.replace(tag, "")
     cleaned = cleaned.strip()
 
-    # Remove markdown artifacts
-    cleaned = re.sub(r"[*#_`]", "", cleaned)
+    # 2. Kill markdown symbols: * # _ ` ~ | >
+    cleaned = re.sub(r"[*#_`~|>]", "", cleaned)
+
+    # 3. Kill numbered lists ("1. ", "2) ") and bullet points ("- ", "• ")
+    cleaned = re.sub(r"^\s*[\d]+[.)\]]\s*", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^\s*[-•▶►■□]\s*", "", cleaned, flags=re.MULTILINE)
+
+    # 4. Kill bracketed prompt leaks: [CONTEXT], [QUESTION], [ANSWER]
+    cleaned = re.sub(r"\[.*?\]:?\s*", "", cleaned)
+
+    # 5. Kill URLs (should not be spoken aloud — keep phone numbers)
+    cleaned = re.sub(r"https?://\S+", "", cleaned)
+
+    # 6. Kill repeated punctuation ("...", "!!!")
+    cleaned = re.sub(r"([.!?])\1+", r"\1", cleaned)
+
+    # 7. Collapse all whitespace
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-    # If it leaked its own instruction
+    # 8. Fallback if it leaked its own instruction
     if "please contact the college" in cleaned.lower() and "i do not have" not in cleaned.lower():
-         return get_fallback()
+        return get_fallback()
 
-    # Limit to 2 sentences
+    # 9. HARD LIMIT: max 2 sentences for voice output
     sentences = re.split(r"(?<=[.!?])\s+", cleaned)
     cleaned = " ".join(sentences[:2])
 
@@ -159,7 +176,7 @@ def generate_answer(llm, question, context,
     try:
         response = llm(
             prompt,
-            max_new_tokens=100,
+            max_new_tokens=80,
             temperature=0.01,  # near zero to force extraction and prevent hallucination
             top_p=0.9,
             repetition_penalty=1.15,
