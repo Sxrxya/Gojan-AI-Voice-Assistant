@@ -4,7 +4,8 @@ import os
 import sys
 
 url = "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
-dest_dir = r"c:\Users\welcome\Downloads\Gojan AI\Gojan-AI-Voice-Assistant\models\gguf"
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+dest_dir = os.path.join(PROJECT_ROOT, "models", "gguf")
 dest_file = os.path.join(dest_dir, "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
 
 os.makedirs(dest_dir, exist_ok=True)

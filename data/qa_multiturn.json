@@ -269,5 +269,130 @@
       {"role":"user","text":"Are they approachable?"},
       {"role":"ai","text":"Yes, faculty members are known to be approachable and supportive. They provide mentoring beyond regular classes."}
     ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Naan first year join pannaporen, hostel eppadi iruku?"},
+      {"role":"ai","text":"Hostel nalla iruku da. Furnished rooms, mess, WiFi ellam iruku. Boys girls separate hostel."},
+      {"role":"user","text":"Ragging irukuma? Bayama iruku"},
+      {"role":"ai","text":"Illa da, tension padaadha. Strict anti-ragging policy iruku. Seniors nalla friendly-a irupanga."},
+      {"role":"user","text":"Food nalla irukuma mess la?"},
+      {"role":"ai","text":"Mess la veg and non-veg options iruku. Plus campus la canteen um iruku snacks ku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Appa kita sollanume, college safe-a nu kekuraru"},
+      {"role":"ai","text":"Campus 80 acre perusu, security iruku 24/7. CCTV cameras um iruku. Safe-a iruku."},
+      {"role":"user","text":"Bus iruka? Nanga Tambaram la irukome"},
+      {"role":"ai","text":"Chennai oda pala areas la irundhum bus iruku. Tambaram route pathi transport office la kelu: +91 7010723984."},
+      {"role":"user","text":"Fees evvalavu aagum approximately?"},
+      {"role":"ai","text":"Exact fees ku admissions office la kelu: +91 7010723984. Government scholarship um institutional scholarship um iruku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"AI ML vs CSE - edhula join panradhu nalladu?"},
+      {"role":"ai","text":"Rendu me nalla courses thaan. AI-ML future-oriented, CSE broad-a cover pannuvanga. Un interest pathi yosichipaaru."},
+      {"role":"user","text":"AI ML la job prospects eppadi?"},
+      {"role":"ai","text":"AI-ML graduates ku romba demand iruku. Data Scientist, ML Engineer positions la Google, Amazon, startups la join pannalam."},
+      {"role":"user","text":"CSE la?"},
+      {"role":"ai","text":"CSE graduates ku software development, web dev, cloud computing la opportunities iruku. TCS, Wipro, Infosys recruit pannuvanga."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Naan working professional, MBA join panna mudiyuma?"},
+      {"role":"ai","text":"Aama! Gojan la MBA iruku. TANCET exam ezhuthi admission vaangalam."},
+      {"role":"user","text":"TANCET eppothu nadakkum?"},
+      {"role":"ai","text":"Usually February-March la TANCET exam nadakkum. Anna University website la exact dates check pannu."},
+      {"role":"user","text":"Part time MBA iruka?"},
+      {"role":"ai","text":"MBA details ku directly admissions office la kelu: +91 7010723984. Avanga full details solluvaanga."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Exam ku eppadi prepare panradhu?"},
+      {"role":"ai","text":"Faculty nalla notes kudupanga. Previous year question papers practice pannu. Library la reference books iruku."},
+      {"role":"user","text":"Arrear vandhuducha enna panradhu?"},
+      {"role":"ai","text":"Don't worry, arrear exam next semester la ezhuthalaam. Faculty guidance kudupanga. Maximum try la pass pannidalam."},
+      {"role":"user","text":"KT ah carry forward pannalam-a?"},
+      {"role":"ai","text":"Aama, arrear clear panra varaikum carry forward aagum. But jaldi clear panniduradhu nalladu."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Clubs join panna eppadi?"},
+      {"role":"ai","text":"Academic year start-la club registration nadakkum. Coding club, robotics, IEEE, NSS, cultural club ellam iruku."},
+      {"role":"user","text":"Coding club la enna nadakkum?"},
+      {"role":"ai","text":"Hackathons, coding competitions, workshops nadakkum. Seniors coding tips um project ideas um share pannuvanga."},
+      {"role":"user","text":"Certificate kidaikuma?"},
+      {"role":"ai","text":"Aama, events la participate pannina certificates kudupanga. Resume ku nalla useful-a irukum."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Redhills area eppadi iruku? Naan first time varuven"},
+      {"role":"ai","text":"Redhills developing area, campus near la shops, restaurants iruku. College bus service iruku so travel easy."},
+      {"role":"user","text":"ATM iruka near-la?"},
+      {"role":"ai","text":"Aama, Redhills area la ATMs iruku. Campus outside la basic facilities ellam iruku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Internship eppothu start aagum?"},
+      {"role":"ai","text":"Usually third year la internship opportunities start aagum. Placement cell arrange pannuvanga companies ku."},
+      {"role":"user","text":"Stipend kidaikuma?"},
+      {"role":"ai","text":"Stipend company-a pothuthu depend aagum. Some companies paid internship kudupanga. Placement cell la details kelu."},
+      {"role":"user","text":"Placement guarantee iruka?"},
+      {"role":"ai","text":"Guarantee solradhu kashtam, but placement cell active-a training kuduthu companies ku connect pannuvanga."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Sports team join panna tryouts irukuma?"},
+      {"role":"ai","text":"Aama, academic year start-la sports tryouts nadakkum. Cricket, football, volleyball, basketball teams iruku."},
+      {"role":"user","text":"Inter-college tournament nadakkuma?"},
+      {"role":"ai","text":"Aama, inter-college la participate pannalam. Anna University zone tournaments um irukum."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"College day celebrations eppadi irukum?"},
+      {"role":"ai","text":"Annual day la cultural programs, dance, music, drama ellam nadakkum. Chief guests um varuvaanga. Romba fun-a irukum."},
+      {"role":"user","text":"Technical symposium iruka?"},
+      {"role":"ai","text":"Aama, department-wise technical symposiums nadakkum. Paper presentation, project expo, coding contests, quizzes ellam irukum."},
+      {"role":"user","text":"Outside students participate pannalama?"},
+      {"role":"ai","text":"Aama, inter-college events la other college students um participate pannalam. Prizes um certificates um kudupanga."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Research opportunity iruka undergrad ku?"},
+      {"role":"ai","text":"Aama, faculty guidance la research projects pannalam. National, international journals la papers publish pannalam."},
+      {"role":"user","text":"Lab facility nalla iruka research ku?"},
+      {"role":"ai","text":"Modern labs iruku ella departments la um. Research ku equipment and resources available iruku."}
+    ]
+  },
+  {
+    "lang": "tg",
+    "turns": [
+      {"role":"user","text":"Laptop mandatory-a college ku?"},
+      {"role":"ai","text":"Mandatory illa, but CSE, IT, AI-ML students ku own laptop irundha romba useful. Lab la computers iruku."},
+      {"role":"user","text":"WiFi speed nalla irukuma college la?"},
+      {"role":"ai","text":"Campus WiFi iruku, plus computer center la high-speed internet iruku. IT department la credentials vaangalam."}
+    ]
   }
 ]
+
