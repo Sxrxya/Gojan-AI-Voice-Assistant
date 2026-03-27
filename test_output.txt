@@ -1,0 +1,26 @@
+Total docs: 203
+
+Q: What is the TNEA code?
+  -> The TNEA counselling code for admissions is 1123.
+
+Q: Where is Gojan located?
+  -> The address of Gojan is 80 Feet Road, Edapalayam, Redhills, Chennai, Tamil Nadu, India - 600 052.
+
+Q: What courses are offered?
+  -> UG programmes offered: B.E. Computer Science and Engineering (CSE).
+
+Q: Tell me about placements
+  -> Eligible students are placed in reputed companies through the placement cell.
+
+Q: What are the hostel facilities?
+  -> The hostel provides excellent infrastructure and facilities for students from various parts of the world.
+
+Q: Who is the chairman?
+  -> The Chairman of Gojan Educational Institutions is Dr. G. Natarajan.
+
+Q: What are the bus routes?
+  -> The college operates 14 bus routes with dedicated drivers and contact numbers for each route.
+
+Q: Tell me about CSE department
+  -> UG programmes offered: B.E. Computer Science and Engineering (CSE).
+

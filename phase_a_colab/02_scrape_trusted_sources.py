@@ -57,6 +57,52 @@ TNEA counselling is rank-based using 12th board marks.
 Gojan TNEA counselling code is 1123.
 For MBA admissions, students must appear in TANCET examination."""
 
+PLACEMENT_FACTS = """Gojan School of Business and Technology has an active Training and Placement Cell.
+The placement cell connects students with top companies for campus recruitment.
+Top recruiters visiting GSBT campus include TCS, Infosys, Wipro, Cognizant, and HCL Technologies.
+Campus recruitment drives are conducted every year from October to March.
+Pre-placement training includes aptitude tests, soft skills, group discussions, and mock interviews.
+Both on-campus and off-campus placement support is provided to all students.
+Placement reports are published annually and available on the college website.
+Students are trained in resume building, technical skills, and interview preparation.
+Eligible students from all departments are placed in reputed companies.
+Sponsorship is provided to Gojan students and alumni for higher education."""
+
+HOSTEL_FACTS = """Gojan School of Business and Technology has separate hostels for boys and girls within the 80-acre campus.
+The hostel provides excellent infrastructure and all necessary facilities.
+Hostel mess provides nutritious and hygienic food with vegetarian and non-vegetarian options.
+The menu has variety catering to students from all over South India.
+Hostel wardens are present round the clock giving attention to every detail.
+The hostel ambience is described as a home away from home.
+Hostel rooms are shared accommodation with bed, table, chair, and cupboard.
+24x7 security supervision and CCTV surveillance is available in hostel premises.
+Hostel has WiFi connectivity and common room with TV for recreation."""
+
+TRANSPORT_FACTS = """Gojan School of Business and Technology operates 14 college bus routes across Chennai.
+Bus Route 03 covers Pulianthope area, Route 04 covers Aminjikarai area.
+Bus Route 05 covers Kundrathur, Route 07 covers Perambur area.
+Bus Route 09 covers Minjur, Route 11 covers Naapaalayam area.
+Bus Route 12 covers Tondiarpet, Route 15 covers Thiruninravur area.
+Bus Route 16 covers Maduravoyal, Route 18 covers Chinna Mathur area.
+Bus Route 19 covers IOC Power House, Route 20 covers Ennore area.
+Bus Route 21 covers Pazhaverkadu, Route 23 covers Elavoor area.
+Each bus has a dedicated driver with contact number for communication.
+All college buses are available for daily pick-up and drop of students.
+Transport facility covers North Chennai, South Chennai, and West Chennai areas."""
+
+CAMPUS_FACTS = """Gojan School of Business and Technology campus spans 80 acres at Redhills, Chennai.
+The campus has WiFi connectivity throughout for students and faculty.
+The college library has a wide collection of books, journals, and digital resources.
+Multiple computer labs with modern systems are available for all departments.
+The campus has sports facilities including indoor and outdoor games.
+The college has an Entrepreneurship Development Cell (ED Cell) for aspiring entrepreneurs.
+The college organizes NSS activities, cultural events, and technical symposiums.
+Gojan Clubs provide opportunities for students in arts, culture, and extracurricular activities.
+The college has IEEE Student Branch and ISTE Chapter as professional bodies.
+The college participates in NIRF (National Institutional Ranking Framework) rankings.
+The college conducts annual graduation day ceremony for passing out students."""
+
+
 
 def extract_text(html: str) -> str:
     """Extract readable text from HTML."""
@@ -126,6 +172,18 @@ def write_verified_facts():
         "",
         "=== TNEA FACTS ===",
         TNEA_FACTS.strip(),
+        "",
+        "=== PLACEMENT FACTS ===",
+        PLACEMENT_FACTS.strip(),
+        "",
+        "=== HOSTEL FACTS ===",
+        HOSTEL_FACTS.strip(),
+        "",
+        "=== TRANSPORT FACTS ===",
+        TRANSPORT_FACTS.strip(),
+        "",
+        "=== CAMPUS FACTS ===",
+        CAMPUS_FACTS.strip(),
     ])
 
     out_path = os.path.join(OUTPUT_DIR, "verified_facts.txt")

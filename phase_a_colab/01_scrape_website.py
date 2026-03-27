@@ -23,6 +23,7 @@ TIMEOUT = 15
 DELAY = 1.5  # seconds between requests
 
 URLS = [
+    # ── Main Pages ──────────────────────────────────────────────
     "https://gojaneducation.tech/",
     "https://gojaneducation.tech/about-us/",
     "https://gojaneducation.tech/v-m/",
@@ -32,6 +33,7 @@ URLS = [
     "https://gojaneducation.tech/committees/",
     "https://gojaneducation.tech/academic-calendar/",
     "https://gojaneducation.tech/professional-bodies/",
+    # ── Departments ─────────────────────────────────────────────
     "https://gojaneducation.tech/departments/",
     "https://gojaneducation.tech/aeronautical-engg/",
     "https://gojaneducation.tech/computer-science-engg/",
@@ -42,29 +44,47 @@ URLS = [
     "https://gojaneducation.tech/mechanical-automation-engg/",
     "https://gojaneducation.tech/medical-electronics-engg/",
     "https://gojaneducation.tech/master-of-business-administration/",
+    # ── Admissions & Placements ─────────────────────────────────
     "https://gojaneducation.tech/admissions/",
     "https://gojaneducation.tech/eligibility/",
     "https://gojaneducation.tech/placements-2/",
+    # ── Campus Life ─────────────────────────────────────────────
     "https://gojaneducation.tech/edc/",
     "https://gojaneducation.tech/campus-life/",
     "https://gojaneducation.tech/nss/",
     "https://gojaneducation.tech/gojan-clubs/",
+    # ── Accreditation & Rankings ────────────────────────────────
     "https://gojaneducation.tech/naac-p1/",
     "https://gojaneducation.tech/nisp/",
     "https://gojaneducation.tech/nirf-3/",
     "https://gojaneducation.tech/gojan-campus-insights/",
-    "https://gojaneducation.tech/?page_id=1476",
-    "https://gojaneducation.tech/?page_id=1274",
-    "https://gojaneducation.tech/?page_id=521",
-    "https://gojaneducation.tech/?page_id=524",
-    "https://gojaneducation.tech/?page_id=506",
-    "https://gojaneducation.tech/?page_id=1978",
-    "https://gojaneducation.tech/?page_id=1968",
-    "https://gojaneducation.tech/?page_id=1006",
-    "https://gojaneducation.tech/?page_id=1503",
-    "https://gojaneducation.tech/?page_id=1594",
-    "https://gojaneducation.tech/?page_id=1542",
-    "https://gojaneducation.tech/?page_id=1609",
+    # ── Existing page_id pages ──────────────────────────────────
+    "https://gojaneducation.tech/?page_id=1476",   # Hostel Facilities
+    "https://gojaneducation.tech/?page_id=1274",   # Sports
+    "https://gojaneducation.tech/?page_id=521",    # Placement Records
+    "https://gojaneducation.tech/?page_id=524",    # Contact Us
+    "https://gojaneducation.tech/?page_id=506",    # Courses
+    "https://gojaneducation.tech/?page_id=1978",   # Faculty
+    "https://gojaneducation.tech/?page_id=1968",   # Events
+    "https://gojaneducation.tech/?page_id=1006",   # Research
+    "https://gojaneducation.tech/?page_id=1503",   # Bus Routes / Transport
+    "https://gojaneducation.tech/?page_id=1594",   # Skill Enhancement
+    "https://gojaneducation.tech/?page_id=1542",   # Anna Univ Rank Holders
+    "https://gojaneducation.tech/?page_id=1609",   # Permanently Affiliated Courses
+    # ── NEW: Discovered from website navigation ─────────────────
+    "https://gojaneducation.tech/?page_id=502",    # About (detailed)
+    "https://gojaneducation.tech/?page_id=512",    # Admissions (detailed)
+    "https://gojaneducation.tech/?page_id=930",    # Academic Schedule
+    "https://gojaneducation.tech/?page_id=1053",   # Downloads
+    "https://gojaneducation.tech/?page_id=1162",   # Approval & Affiliation
+    "https://gojaneducation.tech/?page_id=1225",   # IEEE Student Branch
+    "https://gojaneducation.tech/?page_id=1986",   # Career
+    "https://gojaneducation.tech/?page_id=1991",   # Jobs
+    "https://gojaneducation.tech/?page_id=2010",   # Graduation Day Report
+    "https://gojaneducation.tech/?page_id=2123",   # NAAC (new page)
+    "https://gojaneducation.tech/?page_id=2642",   # Gojan Clubs (detailed)
+    "https://gojaneducation.tech/stakeholders-feedback/",   # Stakeholder Feedback
+    "https://gojaneducation.tech/mandatory-disclosure/",    # Mandatory Disclosure (AICTE)
 ]
 
 # Paths

@@ -19,7 +19,7 @@ INDEX_PATH = os.path.join(VDB_DIR, "college.index")
 DOCS_PATH = os.path.join(VDB_DIR, "documents.pkl")
 
 EMBED_MODEL = "all-MiniLM-L6-v2"
-MAX_CONTEXT_WORDS = 600
+MAX_CONTEXT_WORDS = 800
 
 
 def load_retriever():
@@ -46,7 +46,7 @@ def load_retriever():
     return index, documents, embed_model
 
 
-def retrieve(query, index, documents, embed_model, top_k=4):
+def retrieve(query, index, documents, embed_model, top_k=6):
     """Retrieve top-k relevant document chunks for a query."""
     query_vec = embed_model.encode([query]).astype("float32")
     distances, indices = index.search(query_vec, top_k)
