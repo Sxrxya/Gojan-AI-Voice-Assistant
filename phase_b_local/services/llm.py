@@ -117,9 +117,9 @@ def clean_response(text, question=""):
     if "please contact the college" in cleaned.lower() and "i do not have" not in cleaned.lower():
          return get_fallback()
 
-    # Limit to 2 sentences
+    # Limit to ~4 segments to avoid cutting off names with multiple periods (like Dr. C. Name)
     sentences = re.split(r"(?<=[.!?])\s+", cleaned)
-    cleaned = " ".join(sentences[:2])
+    cleaned = " ".join(sentences[:4])
 
     return cleaned.strip()
 

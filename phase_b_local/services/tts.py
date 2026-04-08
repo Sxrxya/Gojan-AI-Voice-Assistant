@@ -1,42 +1,25 @@
 """
-Phase B - Text-to-Speech Service (100% Offline)
+Phase B - Text-to-Speech Service
 ================================================
-Exclusively uses pyttsx3 (Windows SAPI5 voice engine).
-Zero internet required. No gTTS dependencies.
+Combines gTTS (for online, high-quality voice) and Pygame for playback to prevent hanging on modern Python versions.
 """
 
 import re
-import pyttsx3
-import numpy as np
-
-
-# ── Load ─────────────────────────────────────────────────────────────────────
+import os
+import time
 
 def load_tts():
     """
-    Initialize pyttsx3 and select an appropriate Windows voice.
+    Initialize TTS system. Using gTTS + Pygame for robust playback.
     """
-    print("      TTS: pyttsx3 (100% offline Windows voice)")
-    engine = pyttsx3.init()
-    engine.setProperty("rate", 148)
-    engine.setProperty("volume", 1.0)
-
-    voices = engine.getProperty("voices")
-    for v in voices:
-        name = v.name.lower()
-        if "zira" in name or "hazel" in name:
-            engine.setProperty("voice", v.id)
-            break
-
-    return {"mode": "pyttsx3", "engine": engine}
-
-
-# ── Speak ────────────────────────────────────────────────────────────────────
+    import pygame
+    pygame.mixer.init()
+    print("      TTS: gTTS loaded correctly.")
+    return {"mode": "gtts"}
 
 def speak(engine_info, text, language="english"):
     """
-    Speak text using offline pyttsx3.
-    Strips markdown and limits length to prevent monotone rambling.
+    Speak text using gTTS and pygame.
     """
     if not text:
         return
@@ -50,21 +33,70 @@ def speak(engine_info, text, language="english"):
     parts = [p.strip() for p in parts if p.strip()]
     clean = " ".join(parts[:3])
 
-    engine = engine_info["engine"]
-    
-    if language == "tamil":
-        engine.say("Tamil answer shown on screen. Please read the terminal.")
+    if language == "tamil" or language == "tanglish":
+        voice = "ta-IN-PallaviNeural"  # Realistic Indian Tamil female voice
     else:
-        engine.say(clean)
+        voice = "en-IN-NeerjaNeural"   # Realistic Indian English female voice
+
+    # We use en-IN-NeerjaNeural for high quality Indian English
+    if language == "english":
+        voice = "en-IN-NeerjaNeural"
+
+    import pygame
+    import subprocess
+    
+    fallback_to_gtts = False
+    try:
+        # Use edge-tts via subprocess with a strict 4-second timeout
+        # so the assistant doesn't "freeze" if the Microsoft server is slow.
+        clean_escaped = clean.replace('"', '\\"')
+        cmd = f'edge-tts --voice {voice} --text "{clean_escaped}" --write-media temp_tts.mp3'
         
-    engine.runAndWait()
-
-
-# ── Beep ─────────────────────────────────────────────────────────────────────
+        # Execute with a 4-second timeout to prevent "too slow" feeling
+        result = subprocess.run(cmd, shell=True, timeout=4.0, capture_output=True)
+        
+        if result.returncode != 0 or not os.path.exists("temp_tts.mp3") or os.path.getsize("temp_tts.mp3") == 0:
+            fallback_to_gtts = True
+        else:
+            # Play the generated realistic audio
+            pygame.mixer.music.load("temp_tts.mp3")
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+            pygame.mixer.music.unload()
+            time.sleep(0.1)
+            if os.path.exists("temp_tts.mp3"):
+                os.remove("temp_tts.mp3")
+                
+    except subprocess.TimeoutExpired:
+        print("      TTS: Edge-TTS network timeout. Falling back to gTTS...")
+        fallback_to_gtts = True
+    except Exception as e:
+        print(f"      TTS Error: {e}")
+        fallback_to_gtts = True
+        
+    # IMMEDIATE FALLBACK: If Edge-TTS was too slow or failed (Network issues)
+    if fallback_to_gtts:
+        try:
+            from gtts import gTTS
+            lang_code = 'ta' if language in ["tamil", "tanglish"] else 'en'
+            tts = gTTS(text=clean, lang=lang_code)
+            tts.save("temp_tts.mp3")
+            pygame.mixer.music.load("temp_tts.mp3")
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+            pygame.mixer.music.unload()
+            time.sleep(0.1)
+            if os.path.exists("temp_tts.mp3"):
+                os.remove("temp_tts.mp3")
+        except Exception as e:
+            print(f"      Fallback TTS Error: {e}")
 
 def play_beep():
     """Play a short 200ms confirmation beep using sounddevice."""
     try:
+        import numpy as np
         import sounddevice as sd
         sr = 44100
         t = np.linspace(0, 0.2, int(sr * 0.2), endpoint=False)

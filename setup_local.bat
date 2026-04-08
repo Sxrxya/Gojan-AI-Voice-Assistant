@@ -68,7 +68,8 @@ echo   SETUP COMPLETE!
 echo ═══════════════════════════════════════════════════════
 echo.
 echo   To run the assistant:
-echo     1. Activate the venv:  venv\Scripts\activate
-echo     2. Run:                cd phase_b_local ^& python main.py
+echo     1. Activate the venv:  venv\Scripts\activate (CMD) or .\venv\Scripts\Activate.ps1 (PowerShell)
+echo     2. Run:                cd phase_b_local
+echo                            python main.py
 echo.
 pause

@@ -1,38 +1,62 @@
-Gojan School of Business and Technology was established in 2005.
-The college is located at 80 Feet Road, Edapalayam, Redhills, Chennai - 600 052.
+Gojan School of Business and Technology (GSBT) was established in 2005.
+GSBT is an Autonomous Institution.
+The college is located at Gojan College Road, Edapalayam, Alamathi via, Redhills, Chennai - 600052.
 The campus spans 80 acres at Redhills, Chennai.
 The college is affiliated to Anna University, Chennai.
 The college is recognized by AICTE, New Delhi.
 The college is accredited by NAAC.
 The college is recognized by UGC (University Grants Commission).
+As an autonomous institution, GSBT designs its own curriculum, syllabus, and academic regulations.
+The official website is https://gsbt.edu.in/
+The official email is gsbt@gsbt.edu.in.
+Contact phone number is +91 70107 23984.
+Contact landline number is 044-2631 1045.
 The TNEA counselling code for admissions is 1123.
-Contact phone numbers are +91 7010723984, +91 7010723985.
-The official email is gsbt@gojaneducation.tech.
-The official website is https://gojaneducation.tech.
+The Principal of Gojan School of Business and Technology is Dr. C. Selvakumar, who is a Ph.D. holder and serves as a Member Secretary on the board.
 The Chairman of Gojan Educational Institutions is Dr. G. Natarajan.
 Gojan also has a separate college for teacher education approved by NCTE.
 UG programmes offered: B.E. Aeronautical Engineering.
 UG programmes offered: B.E. Computer Science and Engineering (CSE).
+UG programmes offered: B.E. Computer Science and Engineering with specialization in AI and ML.
+UG programmes offered: B.E. Computer Science and Engineering with specialization in Cyber Security.
+UG programmes offered: B.E. Computer and Communication Engineering.
 UG programmes offered: B.E. Electronics and Communication Engineering (ECE).
-UG programmes offered: B.E. Artificial Intelligence and Machine Learning (AI-ML).
-UG programmes offered: B.E. Cyber Security Engineering.
-UG programmes offered: B.E. Medical Electronics Engineering.
 UG programmes offered: B.E. Mechanical and Automation Engineering.
+UG programmes offered: B.E. Medical Electronics Engineering.
+UG programmes offered: B.E. Bio Technology.
+UG programmes offered: B.E. Robotics and Automation Engineering.
 UG programmes offered: B.Tech. Information Technology (IT).
+UG programmes offered: B.Tech. Pharmaceutical Technology.
+UG programmes offered: B.Tech. Artificial Intelligence and Data Science (AI&DS).
+UG programmes offered: B.Tech. Computer Science and Business Systems (CSBS).
 PG programme offered: MBA - Master of Business Administration.
-Total 8 UG engineering programmes and 1 PG programme are offered.
-All courses at GSBT are permanently affiliated to Anna University.
+Total 14 UG engineering programmes and 1 PG programme are offered at GSBT.
+GSBT has 15 departments in total.
+All courses at GSBT are approved by AICTE and affiliated to Anna University.
 Admissions for engineering are through TNEA counselling by Anna University.
 For MBA admissions, students must appear in TANCET examination.
+B.E./B.Tech eligibility: 12th with PCM, minimum 45% for general category, 40% for reserved.
+MBA eligibility: Bachelor's degree with minimum 50% for general, 45% for reserved category.
 Only counselling fees for merit students at Gojan.
-Eligible students are placed in reputed companies through the placement cell.
+GSBT has a dedicated Training and Placement Cell.
+The 2023 batch received over 250 placement offers.
+The highest salary package offered was 5.5 lakhs per annum (LPA).
+The average salary package was 2.5 lakhs per annum (LPA).
+Top recruiters include HCL Technologies, HP, Siemens, Airtel, ICICI Bank, Sutherland, Global Scholar, TCS, Infosys, Wipro, and Cognizant.
+Eligible students from all departments are placed in reputed companies.
 Sponsorship is provided to Gojan students and alumni for higher education.
+Placement reports are available for years 2020-2021, 2021-2022, and 2022-2023.
+GSBT has a Corporate Connect programme to engage with companies.
+The college has an Entrepreneurship Development Cell (EDC).
 The college has hostel facilities for boys and girls separately within the campus.
-The hostel provides excellent infrastructure and facilities for students from various parts of the world.
-Hostel provides nutritious and hygienic food with variety in the menu catering to students from all over South India.
+The hostel provides excellent infrastructure and facilities for students.
+Hostel provides nutritious and hygienic food with variety catering to students from all over South India.
 Hostel wardens are present round the clock giving attention to every detail.
 The hostel ambience is described as a home away from home.
-The college provides transport facilities from various parts of Chennai.
+Hostel rooms have shared accommodation with bed, table, chair, and cupboard.
+24x7 security supervision and CCTV surveillance in hostel premises.
+GSBT provides state-of-the-art transport facilities.
+The college operates 14 bus routes with dedicated drivers and contact numbers.
 College bus Route 03 covers Pulianthope area.
 College bus Route 04 covers Aminjikarai area.
 College bus Route 05 covers Kundrathur area.
@@ -47,21 +71,24 @@ College bus Route 19 covers IOC Power House area.
 College bus Route 20 covers Ennore area.
 College bus Route 21 covers Pazhaverkadu area.
 College bus Route 23 covers Elavoor area.
-The college operates 14 bus routes with dedicated drivers and contact numbers for each route.
-The campus has WiFi, library, laboratories, and sports facilities.
-The college has an active placement cell connecting students with top companies.
-Placement reports are available for years 2020-2021, 2021-2022, and 2022-2023.
-The college organizes NSS activities, cultural events and technical symposiums.
+Transport covers North Chennai, South Chennai, and West Chennai areas.
+The campus has WiFi connectivity throughout for students and faculty.
+The college library has books, journals, and digital resources.
+Multiple computer labs with modern systems are available.
+GSBT has a Research and Development (R&D) Cell on campus.
+Counseling services are available for students.
+The campus has a canteen with hygienic food.
+Separate common rooms for boys, girls, and staff.
+Sports facilities include Cricket, Football, Volleyball, Basketball, Hockey, Handball, Kabaddi, Kho-Kho, Ball Badminton, Tennis, and Athletics.
+Gym facility is available on campus.
 The college has professional bodies including IEEE Student Branch and ISTE Chapter.
 The college has various student clubs under Gojan Clubs.
-The college has an Entrepreneurship Development Cell (ED Cell).
+The college has an active NSS (National Service Scheme) wing.
+The college organizes cultural events and technical symposiums.
+The college conducts annual graduation day ceremony.
 The college participates in NIRF (National Institutional Ranking Framework).
 NAAC accreditation confirms quality standards at GSBT.
+GSBT has IQAC (Internal Quality Assurance Cell) for quality oversight.
 Anna University rank holders have emerged from GSBT.
-The college has an academic calendar and academic schedule published on the website.
-The college has a skill enhancement programme for students.
-The college has a research division for faculty and student research activities.
-The college has various committees for governance and administration.
-The college has an organizational structure with governing body oversight.
-The college conducts graduation day ceremony for passing out students.
-The address of Gojan is 80 Feet Road, Edapalayam, Redhills, Chennai, Tamil Nadu, India - 600 052.
+The vision of GSBT is to create a dynamic community of educated youth with quality education at affordable cost and employable skills.
+The mission includes academic excellence through quality teaching, learning, and research.
