@@ -48,6 +48,27 @@ REMOVE_PATTERNS = [
 # Seed Facts (hardcoded verified data)
 # ---------------------------------------------------------------------------
 SEED_FACTS = [
+    # Comprehensive Summaries (High Density Chunks)
+    "About Gojan: Gojan School of Business and Technology (GSBT) is an Autonomous Engineering College established in 2005. Housed in an 80-acre campus at Redhills, Chennai, it is affiliated to Anna University, recognized by AICTE, and accredited by both NAAC and UGC. It offers 14 UG engineering programmes and 1 PG MBA program. Additionally, the institution features a separate college for teacher education approved by NCTE.",
+    
+    "Computer Science and Engineering (CSE) Department details: Established in 2005, it offers a 4-year B.E. program. It features cutting-edge lab facilities including RDBMS Lab, Mobile Application Lab, Security Lab, Data Structures Lab, Web Technology Lab, Cloud Computing Lab, Graphics Lab (IBM CoE), and Networks Lab.",
+    
+    "Electronics and Communication Engineering (ECE) Department details: Offers comprehensive U.G and P.G education. The department is equipped with advanced lab facilities including Basic/Digital Electronics Labs, Microprocessor Lab, DSP Lab, Network Lab, Microwave and Optical Lab, Communication and System Lab, MODROB Lab, and Embedded Systems Lab.",
+    
+    "Medical Electronics Engineering Department details: Established in 2022, it offers a 4-year UG program integrating engineering with clinical practice. It features state-of-the-art laboratories for Instrumentation, DSP, Digital Image Processing, and Medical Instrumentation.",
+    
+    "Aeronautical Engineering Department details: Offers a 4-year B.E. program focusing on aircraft design, aerodynamics, and propulsion. It features advanced laboratories like Aerodynamics Lab, Aircraft Structures Lab, Propulsion Lab, and Aero Engine Lab.",
+    
+    "Mechanical and Automation Engineering Department details: Offers a 4-year B.E. program blending core mechanical engineering with modern automation. It features excellent labs including CAD/CAM Lab, Fluid Mechanics Lab, Thermal Engineering Lab, and Manufacturing Technology Lab.",
+    
+    "Artificial Intelligence and Machine Learning (AI & ML) Department details: Offers a specialized 4-year B.E. program providing hands-on training in neural networks, deep learning, data science, and intelligent systems development.",
+    
+    "Cyber Security Engineering Department details: Offers a 4-year B.E. program training students in network security, ethical hacking, cryptography, and digital forensics to defend against modern cyber threats.",
+    
+    "Information Technology (IT) Department details: Offers a 4-year B.Tech program focusing on software development, cloud computing, and IT infrastructure management.",
+    
+    "Master of Business Administration (MBA) Department details: Offers a PG program focused on developing managerial leadership and business administration. Admission requires a Bachelor's degree and TANCET appearance.",
+
     # Identity & Status
     "Gojan School of Business and Technology (GSBT) was established in 2005.",
     "GSBT is an Autonomous Institution.",
@@ -191,11 +212,11 @@ def clean_text(text: str) -> str:
         if skip:
             continue
 
-        # Skip lines shorter than 8 words
-        if len(line.split()) < 8:
+        # Skip lines shorter than 3 words (often just loose navigation links left over)
+        if len(line.split()) < 3:
             # Keep lines that look like facts (contain key terms)
             key_terms = ["gojan", "gsbt", "chennai", "anna university",
-                         "aicte", "naac", "tnea", "1123", "engineering"]
+                         "aicte", "naac", "tnea", "1123", "engineering", "phone", "contact", "email"]
             has_key = any(t in line.lower() for t in key_terms)
             if not has_key:
                 continue

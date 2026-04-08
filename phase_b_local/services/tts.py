@@ -28,10 +28,12 @@ def speak(engine_info, text, language="english"):
     clean = text.strip()
     clean = re.sub(r"[*#_`]", "", clean)
 
-    # Split into sentences and take max 3
+    # Split into sentences and take max 10
     parts = re.split(r"(?<=[.!?])\s+", clean)
     parts = [p.strip() for p in parts if p.strip()]
-    clean = " ".join(parts[:3])
+    clean = " ".join(parts[:10])
+    
+    filename = f"temp_tts_{int(time.time()*1000)}.mp3"
 
     if language == "tamil" or language == "tanglish":
         voice = "ta-IN-PallaviNeural"  # Realistic Indian Tamil female voice
@@ -50,23 +52,23 @@ def speak(engine_info, text, language="english"):
         # Use edge-tts via subprocess with a strict 4-second timeout
         # so the assistant doesn't "freeze" if the Microsoft server is slow.
         clean_escaped = clean.replace('"', '\\"')
-        cmd = f'edge-tts --voice {voice} --text "{clean_escaped}" --write-media temp_tts.mp3'
+        cmd = f'edge-tts --voice {voice} --text "{clean_escaped}" --write-media {filename}'
         
         # Execute with a 4-second timeout to prevent "too slow" feeling
         result = subprocess.run(cmd, shell=True, timeout=4.0, capture_output=True)
         
-        if result.returncode != 0 or not os.path.exists("temp_tts.mp3") or os.path.getsize("temp_tts.mp3") == 0:
+        if result.returncode != 0 or not os.path.exists(filename) or os.path.getsize(filename) == 0:
             fallback_to_gtts = True
         else:
             # Play the generated realistic audio
-            pygame.mixer.music.load("temp_tts.mp3")
+            pygame.mixer.music.load(filename)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
                 time.sleep(0.1)
             pygame.mixer.music.unload()
             time.sleep(0.1)
-            if os.path.exists("temp_tts.mp3"):
-                os.remove("temp_tts.mp3")
+            if os.path.exists(filename):
+                os.remove(filename)
                 
     except subprocess.TimeoutExpired:
         print("      TTS: Edge-TTS network timeout. Falling back to gTTS...")
@@ -81,15 +83,15 @@ def speak(engine_info, text, language="english"):
             from gtts import gTTS
             lang_code = 'ta' if language in ["tamil", "tanglish"] else 'en'
             tts = gTTS(text=clean, lang=lang_code)
-            tts.save("temp_tts.mp3")
-            pygame.mixer.music.load("temp_tts.mp3")
+            tts.save(filename)
+            pygame.mixer.music.load(filename)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
                 time.sleep(0.1)
             pygame.mixer.music.unload()
             time.sleep(0.1)
-            if os.path.exists("temp_tts.mp3"):
-                os.remove("temp_tts.mp3")
+            if os.path.exists(filename):
+                os.remove(filename)
         except Exception as e:
             print(f"      Fallback TTS Error: {e}")
 

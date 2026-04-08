@@ -34,7 +34,7 @@ SYSTEM_PROMPT = (
     "Rule 1: Answer using ONLY the provided CONTEXT text.\n"
     "Rule 2: If the answer is NOT in the CONTEXT, you must reply EXACTLY with: "
     "'I do not have that information. Please contact the college at +91 7010723984.'\n"
-    "Rule 3: Keep the answer under two sentences.\n"
+    "Rule 3: Provide a complete and detailed answer using all relevant information from the CONTEXT.\n"
     "Rule 4: Do not say 'Response:' or 'Assistant:'. Just give the answer directly."
 )
 
@@ -51,7 +51,7 @@ def load_model():
     llm = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
         model_type="llama",
-        context_length=1024,
+        context_length=2048,
         threads=4,
     )
     return llm
@@ -117,9 +117,9 @@ def clean_response(text, question=""):
     if "please contact the college" in cleaned.lower() and "i do not have" not in cleaned.lower():
          return get_fallback()
 
-    # Limit to ~4 segments to avoid cutting off names with multiple periods (like Dr. C. Name)
+    # Limit segments to avoid getting too long, but allow enough for full details
     sentences = re.split(r"(?<=[.!?])\s+", cleaned)
-    cleaned = " ".join(sentences[:4])
+    cleaned = " ".join(sentences[:10])
 
     return cleaned.strip()
 
@@ -159,7 +159,7 @@ def generate_answer(llm, question, context,
     try:
         response = llm(
             prompt,
-            max_new_tokens=100,
+            max_new_tokens=300,
             temperature=0.01,  # near zero to force extraction and prevent hallucination
             top_p=0.9,
             repetition_penalty=1.15,
@@ -177,8 +177,9 @@ def generate_answer(llm, question, context,
             # Find all numbers in the generated answer
             ans_numbers = re.findall(r'\b\d+\b', answer)
             for num in ans_numbers:
-                if num not in ctx_lower:
-                    # The LLM invented a number not in the FAISS source text -> Reject
+                # Ignore small numbers (often used in lists) and only check larger numbers (years/phones)
+                if len(num) >= 3 and num not in ctx_lower:
+                    # The LLM invented a larger number not in the FAISS source text -> Reject
                     return get_fallback(detected_language)
 
         # Catch hallucinated library timing if model forces it despite zero temp

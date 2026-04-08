@@ -321,7 +321,7 @@ def main():
                     components["idx"],
                     components["docs"],
                     components["emb"],
-                    top_k=4,
+                    top_k=6,
                 )
                 context = format_context(chunks)
             except Exception as e:
